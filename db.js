@@ -17,4 +17,13 @@ pool.on('error', (err) => {
   console.error('Erro na conexão com a base de dados:', err);
 });
 
+pool.connect()
+  .then(client => {
+    console.log("✅ Ligação à base de dados bem sucedida!");
+    client.release();
+  })
+  .catch(err => {
+    console.error("❌ Erro ao ligar à base de dados:", err.message);
+  });
+
 export default pool;
