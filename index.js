@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
+import progressoRoutes from './routes/progresso.js';
 import alunosRouter from './routes/alunos.js';
 import authRouter from './routes/auth.js';
 import pool from './db.js';
@@ -19,6 +20,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/alunos', alunosRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/progresso', progressoRoutes);
 
 app.get('/api/health', async (req, res) => {
     try {
