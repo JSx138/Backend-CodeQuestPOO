@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
-import progressoRoutes from './routes/progresso.js';
+import progressoRoutes from './routes/progresso_aluno.js';
 import alunosRouter from './routes/alunos.js';
 import authRouter from './routes/auth.js';
 import pool from './db.js';
