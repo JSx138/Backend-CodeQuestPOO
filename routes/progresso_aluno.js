@@ -137,10 +137,55 @@ router.put('/', verificarToken, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+// -------------------
+// PUT atualizar Coins do aluno logado
+// -------------------
+
+router.put('/coins', verificarToken, async (req, res) => {
+    try {
+        const alunoId = req.alunoId;
+        const { coins } = req.body;
+
+        if (coins === undefined) {
+            return res.status(400).json({ error: 'Coins é obrigatório' });
+        }
+
+        const result = await pool.query(
+            'UPDATE progresso_aluno SET coins = $1 WHERE aluno_id = $2 RETURNING *',
+            [coins, alunoId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Progresso não encontrado' });
+        }
+
+        const row = result.rows[0];
+        res.json({
+            ...row,
+            acertos: row.precisao ?? 0
+        });
+
+    } catch (err) {
+        console.error("[Progresso PUT Coins] ❌ Erro:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
 
 // -------------------
 // GET ranking de XP
 // -------------------
+// Atualizar coins após completar um desafio
+const atualizarCoins = async (novasCoins) => {
+    const response = await fetch('/api/progresso/coins', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ coins: novasCoins })
+    });
+    return await response.json();
+};
 router.get('/ranking', async (req, res) => {
     try {
         const result = await pool.query(
