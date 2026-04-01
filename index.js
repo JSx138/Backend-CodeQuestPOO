@@ -8,6 +8,7 @@ import authRouter from './routes/auth.js';
 import mapas from './routes/mapas.js';
 import pool from './db.js';
 import tempoRouter from './routes/tempo.js';
+import levelRouter from './routes/levelRoutes.js';
 
 dotenv.config();
 
@@ -26,8 +27,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/progresso', progressoRoutes);
 app.use('/api/mapas', mapas);
 app.use('/api/tempo', tempoRouter);
-
-
+app.use('/api/niveis', levelRouter);
 
 app.get('/api/health', async (req, res) => {
     try {
