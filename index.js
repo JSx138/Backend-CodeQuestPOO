@@ -9,6 +9,8 @@ import mapas from './routes/mapas.js';
 import pool from './db.js';
 import tempoRouter from './routes/tempo.js';
 import levelRouter from './routes/levelRoutes.js';
+import desafios from './routes/desafios.js';
+
 
 dotenv.config();
 
@@ -28,6 +30,7 @@ app.use('/api/progresso', progressoRoutes);
 app.use('/api/mapas', mapas);
 app.use('/api/tempo', tempoRouter);
 app.use('/api/niveis', levelRouter);
+app.use('/api/desafios', desafios);
 
 app.get('/api/health', async (req, res) => {
     try {
@@ -39,6 +42,22 @@ app.get('/api/health', async (req, res) => {
 });
 app.get('/api/teste', (req, res) => {
     res.send('teste ok');
+});
+
+app.get('/rotas', (req, res) => {
+    const rotas = [];
+    app._router.stack.forEach(middleware => {
+        if (middleware.route) {
+            rotas.push(`${Object.keys(middleware.route.methods)[0].toUpperCase()} ${middleware.route.path}`);
+        } else if (middleware.name === 'router') {
+            middleware.handle.stack.forEach(handler => {
+                if (handler.route) {
+                    rotas.push(`${Object.keys(handler.route.methods)[0].toUpperCase()} ${handler.route.path}`);
+                }
+            });
+        }
+    });
+    res.json(rotas);
 });
 
 const PORT = process.env.PORT || 3000;
