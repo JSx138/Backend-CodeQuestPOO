@@ -35,54 +35,38 @@ router.get('/', verificarToken, async (req, res) => {
         const progress = progressResult.rows[0] || { mapa_atual: 1, nivel_atual: 1, xp: 0, coins: 0, streak: 0, tempo_total_jogo: 0 };
 
         // 2️⃣ Busca todos os mapas
-        const mapasResult = await pool.query('SELECT id, nome, ordem FROM mapas ORDER BY ordem');
-        const mapas = mapasResult.rows;
 
-        const mapasProgresso = [];
+        // ✅ desafios completados reais (baseado na tabela desempenho_desafio)
+        const desafiosResult = await pool.query(
+            `SELECT COUNT(DISTINCT dd.desafio_id) as total
+     FROM desempenho_desafio dd
+     WHERE dd.aluno_id = $1`,
+            [alunoId]
+        );
 
-        for (const m of mapas) {
-            // Busca todos os níveis do mapa
-            const niveisResult = await pool.query(
-                'SELECT id, nivel, total_desafios FROM niveis WHERE mapa_id = $1 ORDER BY nivel',
-                [m.id]
-            );
-            const niveis = niveisResult.rows;
+        const desafiosCompletos = parseInt(desafiosResult.rows[0].total) || 0;
 
-            let totalDesafiosMapa = 0;
-            let desafiosCompletos = 0;
+        // ✅ total de desafios existentes no jogo
+        const totalResult = await pool.query(
+            `SELECT SUM(total_desafios) as total FROM niveis`
+        );
 
-            for (const n of niveis) {
-                totalDesafiosMapa += n.total_desafios;
+        const totalDesafios = parseInt(totalResult.rows[0].total) || 0;
 
-                // Conta desafios completados:
-                // 1️⃣ Se o aluno já passou do mapa → todos os desafios completos
-                if (progress.mapa_atual > m.id) {
-                    desafiosCompletos += n.total_desafios;
+        const porcentagem = totalDesafios === 0 ? 0 : Math.min((desafiosCompletos / totalDesafiosMapa) * 100, 100);
 
-                    // 2️⃣ Se o aluno está no mapa atual → soma os níveis antes do nível atual
-                } else if (progress.mapa_atual === m.id) {
-                    if (n.nivel < progress.nivel_atual) {
-                        desafiosCompletos += n.total_desafios;
-                    }
-                    // ⚡ opcional: se você armazenar quantos desafios do nível atual foram feitos,
-                    // você pode somar aqui para mostrar progresso parcial do nível
-                }
-            }
-            const porcentagem = totalDesafiosMapa === 0 ? 0 : Math.min((desafiosCompletos / totalDesafiosMapa) * 100, 100);
+        const mapaAnterior = mapasProgresso.find(mp => mp.mapa === m.id - 1);
+        const desbloqueado = m.id === 1 || (mapaAnterior && mapaAnterior.porcentagem === 100);
 
-            const mapaAnterior = mapasProgresso.find(mp => mp.mapa === m.id - 1);
-            const desbloqueado = m.id === 1 || (mapaAnterior && mapaAnterior.porcentagem === 100);
-
-            mapasProgresso.push({
-                mapa: m.id,
-                nome: m.nome,
-                ordem: m.ordem,
-                total_desafios: totalDesafiosMapa,
-                desafios_completos: desafiosCompletos,
-                porcentagem,
-                desbloqueado
-            });
-        }
+        mapasProgresso.push({
+            mapa: m.id,
+            nome: m.nome,
+            ordem: m.ordem,
+            total_desafios: totalDesafios,
+            desafios_completos: desafiosCompletos,
+            porcentagem,
+            desbloqueado
+        });
 
         res.json(mapasProgresso);
 

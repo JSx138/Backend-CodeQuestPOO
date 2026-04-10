@@ -182,6 +182,77 @@ router.post('/concluir/:desafioId', verificarToken, async (req, res) => {
         console.error('[Desafio Concluir] ❌ Erro:', err);
         res.status(500).json({ error: err.message });
     }
+    // 6. Atualiza XP total na progresso_aluno
+const xpTotal = xpDesafio + xpNivel;
+
+await pool.query(
+    'UPDATE progresso_aluno SET xp = xp + $1 WHERE aluno_id = $2',
+    [xpTotal, alunoId]
+);
+
+// ✅ NOVO — Lógica de avanço de nível e mapa
+if (primeiraVez) {
+
+    // Busca progresso atual do aluno
+    const progressoAtual = await pool.query(
+        'SELECT mapa_atual, nivel_atual FROM progresso_aluno WHERE aluno_id = $1',
+        [alunoId]
+    );
+    const { mapa_atual, nivel_atual } = progressoAtual.rows[0];
+
+    // Conta quantos desafios do nível atual o aluno já completou
+    const desafiosNivelResult = await pool.query(
+        `SELECT COUNT(*) as total
+         FROM desempenho_desafio dd
+         JOIN desafios d ON dd.desafio_id = d.id
+         WHERE dd.aluno_id = $1 AND d.nivel_id = $2`,
+        [alunoId, desafio.nivel_id]
+    );
+    const desafiosFeitos = parseInt(desafiosNivelResult.rows[0].total);
+
+    // Completou todos os desafios deste nível?
+    if (desafiosFeitos >= desafio.total_desafios) {
+
+        // Verifica se existe próximo nível no mesmo mapa
+        const proximoNivelResult = await pool.query(
+            `SELECT id FROM niveis 
+             WHERE mapa_id = $1 AND nivel = $2`,
+            [desafio.mapa_id, nivel_atual + 1]
+        );
+
+        if (proximoNivelResult.rows.length > 0) {
+            // ✅ Avança para o próximo nível
+            await pool.query(
+                'UPDATE progresso_aluno SET nivel_atual = nivel_atual + 1 WHERE aluno_id = $1',
+                [alunoId]
+            );
+            console.log(`✅ Aluno ${alunoId} avançou para nível ${nivel_atual + 1}`);
+
+        } else {
+            // Verifica se existe próximo mapa
+            const proximoMapaResult = await pool.query(
+                `SELECT id FROM mapas WHERE ordem = (
+                    SELECT ordem + 1 FROM mapas WHERE id = $1
+                )`,
+                [mapa_atual]
+            );
+
+            if (proximoMapaResult.rows.length > 0) {
+                const proximoMapaId = proximoMapaResult.rows[0].id;
+
+                // ✅ Avança para o próximo mapa, nível 1
+                await pool.query(
+                    'UPDATE progresso_aluno SET mapa_atual = $1, nivel_atual = 1 WHERE aluno_id = $2',
+                    [proximoMapaId, alunoId]
+                );
+                console.log(`✅ Aluno ${alunoId} avançou para mapa ${proximoMapaId}`);
+
+            } else {
+                console.log(`🏆 Aluno ${alunoId} completou o jogo!`);
+            }
+        }
+    }
+}
 });
 
 export default router;
