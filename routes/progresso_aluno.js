@@ -27,46 +27,66 @@ router.get('/', verificarToken, async (req, res) => {
     try {
         const alunoId = req.alunoId;
 
-        // 1️⃣ Busca progresso do aluno
+        // 1. Busca progresso do aluno
         const progressResult = await pool.query(
             'SELECT * FROM progresso_aluno WHERE aluno_id = $1',
             [alunoId]
         );
-        const progress = progressResult.rows[0] || { mapa_atual: 1, nivel_atual: 1, xp: 0, coins: 0, streak: 0, tempo_total_jogo: 0 };
+        const progress = progressResult.rows[0] || { mapa_atual: 1, nivel_atual: 1, xp: 0 };
 
-        // 2️⃣ Busca todos os mapas
+        // 2. Busca todos os mapas
+        const mapasResult = await pool.query('SELECT id, nome, ordem FROM mapas ORDER BY ordem');
+        const mapas = mapasResult.rows;
 
-        // ✅ desafios completados reais (baseado na tabela desempenho_desafio)
-        const desafiosResult = await pool.query(
-            `SELECT COUNT(DISTINCT dd.desafio_id) as total
-     FROM desempenho_desafio dd
-     WHERE dd.aluno_id = $1`,
+        // 3. Desafios realmente completados pelo aluno
+        const desafiosCompletosPorMapa = await pool.query(
+            `SELECT n.mapa_id, COUNT(DISTINCT dd.desafio_id) as total
+             FROM desempenho_desafio dd
+             JOIN desafios d ON dd.desafio_id = d.id
+             JOIN niveis n ON d.nivel_id = n.id
+             WHERE dd.aluno_id = $1
+             GROUP BY n.mapa_id`,
             [alunoId]
         );
 
-        const desafiosCompletos = parseInt(desafiosResult.rows[0].total) || 0;
+        // Transforma em mapa { mapa_id: total }
+        const completosPorMapa = {};
+        for (const row of desafiosCompletosPorMapa.rows) {
+            completosPorMapa[row.mapa_id] = parseInt(row.total);
+        }
 
-        // ✅ total de desafios existentes no jogo
-        const totalResult = await pool.query(
-            `SELECT SUM(total_desafios) as total FROM niveis`
+        // 4. Total de desafios por mapa
+        const totaisPorMapaResult = await pool.query(
+            `SELECT mapa_id, SUM(total_desafios) as total FROM niveis GROUP BY mapa_id`
         );
+        const totaisPorMapa = {};
+        for (const row of totaisPorMapaResult.rows) {
+            totaisPorMapa[row.mapa_id] = parseInt(row.total);
+        }
 
-        const totalDesafios = parseInt(totalResult.rows[0].total) || 0;
+        // 5. Monta a resposta
+        const mapasProgresso = [];
 
-        const porcentagem = totalDesafios === 0 ? 0 : Math.min((desafiosCompletos / totalDesafiosMapa) * 100, 100);
+        for (const m of mapas) {
+            const totalDesafiosMapa = totaisPorMapa[m.id] || 0;
+            const desafiosCompletos = completosPorMapa[m.id] || 0;
+            const porcentagem = totalDesafiosMapa === 0
+                ? 0
+                : Math.min((desafiosCompletos / totalDesafiosMapa) * 100, 100);
 
-        const mapaAnterior = mapasProgresso.find(mp => mp.mapa === m.id - 1);
-        const desbloqueado = m.id === 1 || (mapaAnterior && mapaAnterior.porcentagem === 100);
+            const mapaAnterior = mapasProgresso.find(mp => mp.mapa === m.id - 1);
+            const desbloqueado = m.id === 1 || (mapaAnterior && mapaAnterior.porcentagem === 100);
 
-        mapasProgresso.push({
-            mapa: m.id,
-            nome: m.nome,
-            ordem: m.ordem,
-            total_desafios: totalDesafios,
-            desafios_completos: desafiosCompletos,
-            porcentagem,
-            desbloqueado
-        });
+            mapasProgresso.push({
+                mapa: m.id,
+                nome: m.nome,
+                ordem: m.ordem,
+                total_desafios: totalDesafiosMapa,
+                desafios_completos: desafiosCompletos,
+                porcentagem,
+                desbloqueado,
+            });
+        }
 
         res.json(mapasProgresso);
 
