@@ -1,38 +1,78 @@
 const NIVEIS = [
-  { nivel: 1, xpMin: 0,   titulo: "Aprendiz" },
-  { nivel: 2, xpMin: 80,  titulo: "Explorador" },
+  { nivel: 1, xpMin: 0, titulo: "Aprendiz" },
+  { nivel: 2, xpMin: 80, titulo: "Explorador" },
   { nivel: 3, xpMin: 180, titulo: "Programador" },
   { nivel: 4, xpMin: 320, titulo: "Mestre do Código" },
   { nivel: 5, xpMin: 500, titulo: "Guardião do Código" },
-];
+  { nivel: 6, xpMin: 750, titulo: "Arquiteto de Sistemas" },
+  { nivel: 7, xpMin: 1100, titulo: "Lenda do Código" },
+]
 
-// Calcula o nível e título com base no XP total
+// 🔥 FUNÇÃO PRINCIPAL: nível completo
 export function calcularNivel(xpTotal) {
-  let resultado = NIVEIS[0]; // começa no nível 1
+  let nivelAtual = NIVEIS[0]
 
-  for (const n of NIVEIS) {
-    if (xpTotal >= n.xpMin) {
-      resultado = n;
+  for (const nivel of NIVEIS) {
+    if (xpTotal >= nivel.xpMin) {
+      nivelAtual = nivel
     }
   }
 
-  // Próximo nível (para a barra de progresso)
-  const proximoNivel = NIVEIS.find(n => n.nivel === resultado.nivel + 1);
+  const proximoNivel = NIVEIS.find(
+    n => n.nivel === nivelAtual.nivel + 1
+  )
+
+  const xpProximoNivel = proximoNivel ? proximoNivel.xpMin : null
+
+  const nivelMaximo = xpProximoNivel === null
+
+  const xpAtualNivel = nivelAtual.xpMin
+
+  const progresso =
+    xpProximoNivel !== null
+      ? Math.min(
+          100,
+          ((xpTotal - xpAtualNivel) /
+            (xpProximoNivel - xpAtualNivel)) *
+            100
+        )
+      : 100
 
   return {
-    nivel: resultado.nivel,
-    titulo: resultado.titulo,
-    xp: xpTotal,
-    nivel_atual: resultado.xpMin,
-    xpProximoNivel: proximoNivel ? proximoNivel.xpMin : null, // null = nível máximo
-    nivelMaximo: !proximoNivel,
-  };
+    nivel: nivelAtual.nivel,
+    titulo: nivelAtual.titulo,
+
+    xpTotal,
+    xpAtualNivel,
+    xpProximoNivel,
+
+    nivelMaximo,
+
+    progresso, // % da barra XP
+  }
 }
 
-// Calcula o XP ganho (reduzido se for repetição)
+// 🔥 XP ganho com regra de repetição
 export function calcularXpGanho(xpBase, primeiraVez) {
-  if (primeiraVez) return xpBase;
-  return Math.floor(xpBase * 0.2); // 20% se repetir
+  if (primeiraVez) return xpBase
+  return Math.floor(xpBase * 0.2)
 }
 
-export default { calcularNivel, calcularXpGanho };
+// 🔥 helper direto (UX)
+export function formatarNivelInfo(xpTotal) {
+  const nivel = calcularNivel(xpTotal)
+
+  return {
+    textoNivel: `Nível ${nivel.nivel} - ${nivel.titulo}`,
+    isMaxLevel: nivel.nivelMaximo,
+    xpProximoTexto: nivel.nivelMaximo
+      ? "NÍVEL MÁXIMO 👑"
+      : `${nivel.xpProximoNivel - xpTotal} XP para o próximo nível`,
+  }
+}
+
+export default {
+  calcularNivel,
+  calcularXpGanho,
+  formatarNivelInfo,
+}
