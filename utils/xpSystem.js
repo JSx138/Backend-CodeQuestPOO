@@ -22,7 +22,7 @@ export function calcularNivel(xpTotal) {
     n => n.nivel === nivelAtual.nivel + 1
   )
 
-  const xpProximoNivel = proximoNivel ? proximoNivel.xpMin : null
+  const xpProximoNivel = proximoNivel ? proximoNivel.xpMin : xpTotal
 
   const nivelMaximo = xpProximoNivel === null
 
@@ -31,11 +31,11 @@ export function calcularNivel(xpTotal) {
   const progresso =
     xpProximoNivel !== null
       ? Math.min(
-          100,
-          ((xpTotal - xpAtualNivel) /
-            (xpProximoNivel - xpAtualNivel)) *
-            100
-        )
+        100,
+        ((xpTotal - xpAtualNivel) /
+          (xpProximoNivel - xpAtualNivel)) *
+        100
+      )
       : 100
 
   return {
@@ -60,15 +60,19 @@ export function calcularXpGanho(xpBase, primeiraVez) {
 
 // 🔥 helper direto (UX)
 export function formatarNivelInfo(xpTotal) {
-  const nivel = calcularNivel(xpTotal)
+  const nivel = calcularNivel(xpTotal);
+
+  const isMax = nivel.nivelMaximo;
 
   return {
     textoNivel: `Nível ${nivel.nivel} - ${nivel.titulo}`,
-    isMaxLevel: nivel.nivelMaximo,
-    xpProximoTexto: nivel.nivelMaximo
+
+    isMaxLevel: isMax,
+
+    xpProximoTexto: isMax
       ? "NÍVEL MÁXIMO 👑"
       : `${nivel.xpProximoNivel - xpTotal} XP para o próximo nível`,
-  }
+  };
 }
 
 export default {
