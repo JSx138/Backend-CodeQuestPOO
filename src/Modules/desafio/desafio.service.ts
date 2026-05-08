@@ -148,6 +148,30 @@ export class DesafiosService {
 
             const nivelMaximo = nivelCompleto && !proximoNivel;
 
+            let streak = 0;
+
+            if (respostas_erradas === 0) {
+                await pool.query(
+                    'UPDATE progresso_aluno SET streak = streak + 1 WHERE aluno_id = $1',
+                    [alunoId]
+                )
+                const streakResult = await pool.query(
+                    'SELECT streak FROM progresso_aluno WHERE aluno_id = $1',
+                    [alunoId]
+                )
+                streak = streakResult.rows[0].streak
+            } else {
+                await pool.query(
+                    'UPDATE progresso_aluno SET streak = 0 WHERE aluno_id = $1',
+                    [alunoId]
+                )
+                const streakResult = await pool.query(
+                    'SELECT streak FROM progresso_aluno WHERE aluno_id = $1',
+                    [alunoId]
+                )
+                streak = streakResult.rows[0].streak
+            }
+
             return {
                 sucesso: true,
                 primeiraVez,
@@ -156,6 +180,7 @@ export class DesafiosService {
                 nivelMaximo,
                 proximoNivel,
                 progressao,
+                novoStreak: streak,
             };
 
         } catch (error) {

@@ -104,13 +104,14 @@ export interface ConcluirDesafioResponse {
   };
   nivelCompleto: boolean;
   nivelMaximo: boolean;
-  proximoNivel: any; 
-  progressao: any;   
+  proximoNivel: any;
+  progressao: any;
+  novoStreak?: number;
 }
 
 export interface DesempenhoXP {
   xp: number;
- progressao: ReturnType<typeof import('./xpSystem').calcularNivel>;
+  progressao: ReturnType<typeof import('./xpSystem').calcularNivel>;
 }
 
 export interface DesempenhoDesafio {

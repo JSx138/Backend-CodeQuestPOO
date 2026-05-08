@@ -3,21 +3,21 @@ import { DesafiosService } from "./desafio.service"
 import { AuthRequest } from '../../Middlewares/auth.middleware';
 
 export const getDesempenho = async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-        const alunoId = req.alunoId!
+  try {
+    const alunoId = req.alunoId!
 
-        if (isNaN(alunoId)) {
-            res.status(400).json({ message: "alunoId inválido" })
-            return
-        }
-
-        const desempenho = await DesafiosService.getDesempenho(alunoId)
-
-        res.json(desempenho)
-    } catch (error) {
-        console.error("[DesafiosController] getDesempenho:", error);
-        res.status(500).json({ message: "Erro ao obter desempenho" });
+    if (isNaN(alunoId)) {
+      res.status(400).json({ message: "alunoId inválido" })
+      return
     }
+
+    const desempenho = await DesafiosService.getDesempenho(alunoId)
+
+    res.json(desempenho)
+  } catch (error) {
+    console.error("[DesafiosController] getDesempenho:", error);
+    res.status(500).json({ message: "Erro ao obter desempenho" });
+  }
 }
 
 export const concluirDesafio = async (req: AuthRequest, res: Response): Promise<void> => {
