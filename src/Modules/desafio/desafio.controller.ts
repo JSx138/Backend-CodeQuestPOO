@@ -39,6 +39,7 @@ export const concluirDesafio = async (req: AuthRequest, res: Response): Promise<
       tipo_erro_id,
       tipo_feedback_id,
       feedback_ia,
+      novo_streak,
     } = req.body;
 
     const resultado = await DesafiosService.concluirDesafio(
@@ -53,9 +54,11 @@ export const concluirDesafio = async (req: AuthRequest, res: Response): Promise<
         tipo_erro_id,
         tipo_feedback_id,
         feedback_ia,
+        novo_streak,
       }
     );
 
+    console.log(JSON.stringify(resultado, null, 2));
     res.status(200).json(resultado);
 
   } catch (error) {

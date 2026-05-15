@@ -8,7 +8,6 @@ const NIVEIS = [
   { nivel: 7, xpMin: 1100, titulo: "Lenda do Código" },
 ]
 
-// 🔥 FUNÇÃO PRINCIPAL: nível completo
 export function calcularNivel(xpTotal: number) {
   let nivelAtual = NIVEIS[0]
 
@@ -52,7 +51,7 @@ export function calcularNivel(xpTotal: number) {
   }
 }
 
-export function calcularXpGanho(xpBase:number, primeiraVez:boolean) {
+export function calcularXpGanho(xpBase: number, primeiraVez: boolean) {
   if (primeiraVez) return xpBase
   return Math.floor(xpBase * 0.2)
 }

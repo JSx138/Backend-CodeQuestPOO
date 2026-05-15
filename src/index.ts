@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import pool from './Config/db';
+import sequelize from './Config/sequelize.js';
 
 import authRouter from './Modules/auth/auth.routes'
 import alunosRouter from './Modules/alunos/alunos.routes';
@@ -35,20 +35,22 @@ app.use('/api/desempenho', desempenhoRouter);
 
 app.get('/api/health', async (_req: Request, res: Response) => {
   try {
-    await pool.query('SELECT NOW()');
-    res.json({ status: 'OK', db: 'Conectado' });
+    await sequelize.authenticate();
+    res.json({ status: 'OK', db: 'Conectado com Sequelize' });
   } catch (err) {
     const error = err as Error;
     res.status(500).json({ status: 'ERRO', db: 'Desconectado', erro: error.message });
   }
 });
 
-app.get('/api/teste', (_req: Request, res: Response) => {
-  res.send('teste ok');
-});
-
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Servidor no http://localhost:${PORT}`);
+  try {
+    await sequelize.authenticate();
+    console.log('Conexão com a base de dados bem-sucedida.');
+  } catch (error) {
+    console.error('Não foi possível conectar a base de dados:', error);
+  }
 });

@@ -1,20 +1,22 @@
-import pool from '../../Config/db';
 import { handleError } from '../../Utils/error';
 import { calcularXpGanho, calcularNivel } from '../../Utils/xpSystem';
 import { ConcluirDesafioDTO, ConcluirDesafioResponse, DesempenhoXP } from '../../Utils/types';
+import ProgressoAluno from '../../Models/ProgressoAluno/progressoAluno.js';
+import Desafio from '../../Models/Desafio/desafio.js';
+import Nivel from '../../Models/Nivel/nivel.js';
+import DesempenhoDesafio from '../../Models/DesempenhoDesafio/desempenhoDesafio.js';
 
 export class DesafiosService {
 
     static async getDesempenho(alunoId: number): Promise<DesempenhoXP> {
         try {
-            const result = await pool.query(
-                'SELECT xp FROM progresso_aluno WHERE aluno_id = $1',
-                [alunoId]
-            );
+            const progresso = await ProgressoAluno.findOne({
+                where: { aluno_id: alunoId }
+            });
 
-            if (!result.rows.length) return { xp: 0, progressao: calcularNivel(0) };
+            if (!progresso) return { xp: 0, progressao: calcularNivel(0) };
 
-            const xp = result.rows[0].xp;
+            const xp = progresso.xp;
             const progressao = calcularNivel(xp);
 
             return { xp, progressao };
@@ -40,51 +42,47 @@ export class DesafiosService {
                 feedback_ia = null,
             } = dados;
 
-            const desafioResult = await pool.query(
-                `SELECT d.*, 
-                 n.id as nivel_id, 
-                 n.total_desafios, 
-                 n.xp_recompensa,
-                 n.mapa_id
-                FROM desafios d
-                JOIN niveis n ON d.nivel_id = n.id
-                WHERE d.id = $1`,
-                [desafioId]
-            );
+            const desafio = await Desafio.findByPk(desafioId, {
+                include: [{
+                    model: Nivel,
+                    as: 'nivel'
+                }]
+            });
 
-            const desafio = desafioResult.rows[0];
-            if (!desafio) throw new Error('Desafio não encontrado');
+            if (!desafio || !desafio.nivel) throw new Error('Desafio não encontrado');
 
-            const registoResult = await pool.query(
-                'SELECT tentativas FROM desempenho_desafio WHERE aluno_id = $1 AND desafio_id = $2',
-                [alunoId, desafioId]
-            );
+            const [desempenho, created] = await DesempenhoDesafio.findOrCreate({
+                where: { aluno_id: alunoId, desafio_id: desafioId },
+                defaults: {
+                    aluno_id: alunoId,
+                    desafio_id: desafioId,
+                    respostas_certas,
+                    respostas_erradas,
+                    tentativas: 1,
+                    ajudas_usadas,
+                    tempo_desafio,
+                    score,
+                    tipo_erro_id,
+                    tipo_feedback_id,
+                    feedback_ia
+                }
+            });
 
-            const primeiraVez = registoResult.rows.length === 0;
+            const primeiraVez = created;
 
-            if (primeiraVez) {
-                await pool.query(
-                    `INSERT INTO desempenho_desafio 
-           (aluno_id, desafio_id, respostas_certas, respostas_erradas, tentativas, ajudas_usadas, tempo_desafio, score, tipo_erro_id, tipo_feedback_id, feedback_ia)
-           VALUES ($1,$2,$3,$4,1,$5,$6,$7,$8,$9,$10)`,
-                    [alunoId, desafioId, respostas_certas, respostas_erradas, ajudas_usadas, tempo_desafio, score, tipo_erro_id, tipo_feedback_id, feedback_ia]
-                );
-            } else {
-                await pool.query(
-                    `UPDATE desempenho_desafio SET
-           tentativas = tentativas + 1,
-           respostas_certas = $3,
-           respostas_erradas = $4,
-           ajudas_usadas = $5,
-           tempo_desafio = $6,
-           score = $7,
-           tipo_erro_id = $8,
-           tipo_feedback_id = $9,
-           feedback_ia = $10,
-           data_execucao = CURRENT_TIMESTAMP
-           WHERE aluno_id = $1 AND desafio_id = $2`,
-                    [alunoId, desafioId, respostas_certas, respostas_erradas, ajudas_usadas, tempo_desafio, score, tipo_erro_id, tipo_feedback_id, feedback_ia]
-                );
+            if (!primeiraVez) {
+                await desempenho.update({
+                    tentativas: desempenho.tentativas + 1,
+                    respostas_certas,
+                    respostas_erradas,
+                    ajudas_usadas,
+                    tempo_desafio,
+                    score,
+                    tipo_erro_id,
+                    tipo_feedback_id,
+                    feedback_ia,
+                    data_execucao: new Date()
+                });
             }
 
             const xpDesafio = calcularXpGanho(desafio.xp_recompensa, primeiraVez);
@@ -93,83 +91,54 @@ export class DesafiosService {
             let nivelCompleto = false;
 
             if (primeiraVez) {
-                const concluidosResult = await pool.query(
-                    `SELECT COUNT(DISTINCT dd.desafio_id) as total
-           FROM desempenho_desafio dd
-           JOIN desafios d ON dd.desafio_id = d.id
-           WHERE dd.aluno_id = $1 AND d.nivel_id = $2`,
-                    [alunoId, desafio.nivel_id]
-                );
+                const totalConcluidos = await DesempenhoDesafio.count({
+                    include: [{
+                        model: Desafio,
+                        where: { nivel_id: desafio.nivel_id }
+                    }],
+                    where: { aluno_id: alunoId }
+                });
 
-                const totalConcluidos = parseInt(concluidosResult.rows[0].total);
-
-                if (totalConcluidos >= desafio.total_desafios) {
-                    xpNivel = desafio.xp_recompensa;
+                if (totalConcluidos >= desafio.nivel.total_desafios) {
+                    xpNivel = desafio.nivel.xp_recompensa;
                     nivelCompleto = true;
                 }
             }
 
             const xpTotal = xpDesafio + xpNivel;
-            await pool.query(
-                'UPDATE progresso_aluno SET xp = xp + $1 WHERE aluno_id = $2',
-                [xpTotal, alunoId]
+            await ProgressoAluno.increment(
+                { xp: xpTotal },
+                { where: { aluno_id: alunoId } }
             );
 
-            const progressoResult = await pool.query(
-                'SELECT xp FROM progresso_aluno WHERE aluno_id = $1',
-                [alunoId]
-            );
-            const progressao = calcularNivel(progressoResult.rows[0].xp);
+            const progresso = await ProgressoAluno.findOne({ where: { aluno_id: alunoId } });
+            const progressao = calcularNivel(progresso?.xp || 0);
 
             let proximoNivel = null;
 
             if (nivelCompleto) {
-                const proximoNivelResult = await pool.query(
-                    `SELECT n.id, n.nivel, n.xp_recompensa,
-           json_agg(
-             json_build_object(
-               'id', d.id,
-               'titulo', d.nome,
-               'descricao', d.descricao,
-               'xp_recompensa', d.xp_recompensa,
-               'ordem', d.ordem
-             ) ORDER BY d.ordem
-           ) as desafios
-           FROM niveis n
-           LEFT JOIN desafios d ON d.nivel_id = n.id
-           WHERE n.mapa_id = $1
-           AND n.nivel = (SELECT nivel + 1 FROM niveis WHERE id = $2)
-           GROUP BY n.id, n.nivel, n.xp_recompensa`,
-                    [desafio.mapa_id, desafio.nivel_id]
-                );
-
-                proximoNivel = proximoNivelResult.rows[0] ?? null;
+                proximoNivel = await Nivel.findOne({
+                    where: {
+                        mapa_id: desafio.nivel.mapa_id,
+                        nivel: desafio.nivel.nivel + 1
+                    },
+                    include: [{
+                        model: Desafio,
+                        as: 'desafios'
+                    }]
+                });
             }
 
             const nivelMaximo = nivelCompleto && !proximoNivel;
 
             let streak = 0;
 
-            if (respostas_erradas === 0) {
-                await pool.query(
-                    'UPDATE progresso_aluno SET streak = streak + 1 WHERE aluno_id = $1',
-                    [alunoId]
-                )
-                const streakResult = await pool.query(
-                    'SELECT streak FROM progresso_aluno WHERE aluno_id = $1',
-                    [alunoId]
-                )
-                streak = streakResult.rows[0].streak
-            } else {
-                await pool.query(
-                    'UPDATE progresso_aluno SET streak = 0 WHERE aluno_id = $1',
-                    [alunoId]
-                )
-                const streakResult = await pool.query(
-                    'SELECT streak FROM progresso_aluno WHERE aluno_id = $1',
-                    [alunoId]
-                )
-                streak = streakResult.rows[0].streak
+            if (dados.novo_streak !== undefined) {
+                await ProgressoAluno.update(
+                    { streak: dados.novo_streak },
+                    { where: { aluno_id: alunoId } }
+                );
+                streak = Number(dados.novo_streak || 0);
             }
 
             return {
@@ -178,7 +147,7 @@ export class DesafiosService {
                 xpGanho: { desafio: xpDesafio, nivelBonus: xpNivel, total: xpTotal },
                 nivelCompleto,
                 nivelMaximo,
-                proximoNivel,
+                proximoNivel: proximoNivel ? proximoNivel.get({ plain: true }) : null,
                 progressao,
                 novoStreak: streak,
             };

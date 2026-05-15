@@ -92,6 +92,7 @@ export interface ConcluirDesafioDTO {
   tipo_erro_id?: number | null;
   tipo_feedback_id?: number | null;
   feedback_ia?: string | null;
+  novo_streak?: number | null;
 }
 
 export interface ConcluirDesafioResponse {

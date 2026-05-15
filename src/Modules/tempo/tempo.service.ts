@@ -1,5 +1,5 @@
-import pool from '../../Config/db';
 import { handleError } from '../../Utils/error';
+import TempoNivel from '../../Models/TempoNivel/tempoNivel.js';
 
 export class TempoService {
 
@@ -10,11 +10,13 @@ export class TempoService {
                 throw new Error('Tempo inválido');
             }
 
-            await pool.query(
-                `UPDATE progresso_aluno 
-                SET tempo_total_jogo = tempo_total_jogo + $1 
-                WHERE aluno_id = $2`,
-                [tempo, alunoId]
+            await TempoNivel.increment(
+                { tempo_total: tempo },
+                {
+                    where: {
+                        aluno_id: alunoId
+                    }
+                }
             );
 
         } catch (error) {

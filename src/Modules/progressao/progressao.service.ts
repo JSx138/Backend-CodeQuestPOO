@@ -1,39 +1,57 @@
-import pool from '../../Config/db';
 import { handleError } from '../../Utils/error';
 import { MapaProgresso, DashboardStats } from '../../Utils/types';
+import Mapa from '../../Models/Mapa/mapa.js';
+import Nivel from '../../Models/Nivel/nivel.js';
+import DesempenhoDesafio from '../../Models/DesempenhoDesafio/desempenhoDesafio.js';
+import Desafio from '../../Models/Desafio/desafio.js';
+import ProgressoAluno from '../../Models/ProgressoAluno/progressoAluno.js';
+import { Sequelize } from 'sequelize-typescript';
 
 export class ProgressoService {
 
   static async getProgressoPorMapas(alunoId: number): Promise<MapaProgresso[]> {
     try {
-      const mapasResult = await pool.query('SELECT id, nome, ordem FROM mapas ORDER BY ordem');
-      const mapas = mapasResult.rows;
+      const mapas = await Mapa.findAll({ order: [['ordem', 'ASC']] });
 
-      const completosResult = await pool.query(
-        `SELECT n.mapa_id, COUNT(DISTINCT dd.desafio_id) as total
-         FROM desempenho_desafio dd
-         JOIN desafios d ON dd.desafio_id = d.id
-         JOIN niveis n ON d.nivel_id = n.id
-         WHERE dd.aluno_id = $1
-         GROUP BY n.mapa_id`,
-        [alunoId]
-      );
+      const completosPorMapaResult = await DesempenhoDesafio.findAll({
+        attributes: [
+          [Sequelize.col('desafio.nivel.mapa_id'), 'mapa_id'],
+          [Sequelize.fn('COUNT', Sequelize.fn('DISTINCT', Sequelize.col('desafio_id'))), 'total']
+        ],
+        include: [{
+          model: Desafio,
+          attributes: [],
+          include: [{
+            model: Nivel,
+            attributes: [],
+            as: 'nivel'
+          }]
+        }],
+        where: { aluno_id: alunoId },
+        group: [Sequelize.col('desafio.nivel.mapa_id')],
+        raw: true
+      }) as any[];
 
-      const totaisResult = await pool.query(
-        'SELECT mapa_id, SUM(total_desafios) as total FROM niveis GROUP BY mapa_id'
-      );
+      const totaisPorMapaResult = await Nivel.findAll({
+        attributes: [
+          'mapa_id',
+          [Sequelize.fn('SUM', Sequelize.col('total_desafios')), 'total']
+        ],
+        group: ['mapa_id'],
+        raw: true
+      }) as any[];
 
       const completosPorMapa: Record<number, number> = {};
-      completosResult.rows.forEach(r => { completosPorMapa[r.mapa_id] = parseInt(r.total); });
+      completosPorMapaResult.forEach(r => { completosPorMapa[r.mapa_id] = parseInt(r.total); });
 
       const totaisPorMapa: Record<number, number> = {};
-      totaisResult.rows.forEach(r => { totaisPorMapa[r.mapa_id] = parseInt(r.total); });
+      totaisPorMapaResult.forEach(r => { totaisPorMapa[r.mapa_id] = parseInt(r.total); });
 
       const mapasProgresso: MapaProgresso[] = [];
 
       for (const m of mapas) {
-        const totalDesafiosMapa = totaisPorMapa[m.id] || 0;
-        const desafiosCompletos = completosPorMapa[m.id] || 0;
+        const totalDesafiosMapa = Number(totaisPorMapa[m.id] || 0);
+        const desafiosCompletos = Number(completosPorMapa[m.id] || 0);
         const porcentagem = totalDesafiosMapa === 0
           ? 0
           : Math.min((desafiosCompletos / totalDesafiosMapa) * 100, 100);
@@ -60,43 +78,28 @@ export class ProgressoService {
 
   static async getDashboard(alunoId: number): Promise<DashboardStats> {
     try {
-      const progressResult = await pool.query(
-        'SELECT * FROM progresso_aluno WHERE aluno_id = $1',
-        [alunoId]
-      );
-      const progress = progressResult.rows[0];
+      const progress = await ProgressoAluno.findOne({
+        where: { aluno_id: alunoId }
+      });
 
       if (!progress) {
         return { xp_total: 0, nivel_atual: 1, coins: 0, streak: 0, tempo_total_jogo: 0, desafios_completos: 0, total_desafios: 0, porcentagem_completa: 0 };
       }
 
-      const mapasResult = await pool.query('SELECT id FROM mapas ORDER BY ordem');
-      let totalDesafios = 0;
-      let desafiosCompletos = 0;
+      const totalDesafios = await Nivel.sum('total_desafios') || 0;
 
-      for (const m of mapasResult.rows) {
-        const niveisResult = await pool.query(
-          'SELECT id, nivel, total_desafios FROM niveis WHERE mapa_id = $1 ORDER BY nivel',
-          [m.id]
-        );
-
-        for (const n of niveisResult.rows) {
-          totalDesafios += n.total_desafios;
-
-          if (progress.mapa_atual > m.id) {
-            desafiosCompletos += n.total_desafios;
-          } else if (progress.mapa_atual === m.id && n.nivel < progress.nivel_atual) {
-            desafiosCompletos += n.total_desafios;
-          }
-        }
-      }
+      const desafiosCompletos = await DesempenhoDesafio.count({
+        where: { aluno_id: alunoId },
+        distinct: true,
+        col: 'desafio_id'
+      });
 
       return {
-        xp_total: progress.xp || 0,
-        nivel_atual: progress.nivel_atual || 1,
-        coins: progress.coins || 0,
-        streak: progress.streak || 0,
-        tempo_total_jogo: progress.tempo_total_jogo || 0,
+        xp_total: Number(progress.xp || 0),
+        nivel_atual: Number(progress.nivel_atual || 1),
+        coins: Number(progress.coins || 0),
+        streak: Number(progress.streak || 0),
+        tempo_total_jogo: Number(progress.tempo_total_jogo || 0),
         desafios_completos: desafiosCompletos,
         total_desafios: totalDesafios,
         porcentagem_completa: totalDesafios === 0 ? 0 : Math.min((desafiosCompletos / totalDesafios) * 100, 100),

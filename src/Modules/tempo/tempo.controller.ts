@@ -4,7 +4,7 @@ import { AuthRequest } from '../../Middlewares/auth.middleware';
 
 export const registarTempo = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-         const alunoId = req.alunoId!
+        const alunoId = req.alunoId!
         const tempo = Number(req.body.tempo);
 
 
