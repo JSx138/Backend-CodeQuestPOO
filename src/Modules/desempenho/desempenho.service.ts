@@ -1,5 +1,5 @@
-import { handleError } from '../../Utils/error';
-import { DesempenhoAluno } from '../../Utils/types';
+import { handleError } from '../../Utils/error.js';
+import { DesempenhoAluno } from '../../Utils/types.js';
 import DesempenhoDesafio from '../../Models/DesempenhoDesafio/desempenhoDesafio.js';
 
 export class DesempenhoService {

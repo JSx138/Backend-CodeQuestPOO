@@ -1,6 +1,6 @@
-import { handleError } from '../../Utils/error';
-import { calcularXpGanho, calcularNivel } from '../../Utils/xpSystem';
-import { ConcluirDesafioDTO, ConcluirDesafioResponse, DesempenhoXP } from '../../Utils/types';
+import { handleError } from '../../Utils/error.js';
+import { calcularXpGanho, calcularNivel } from '../../Utils/xpSystem.js';
+import { ConcluirDesafioDTO, ConcluirDesafioResponse, DesempenhoXP } from '../../Utils/types.js';
 import ProgressoAluno from '../../Models/ProgressoAluno/progressoAluno.js';
 import Desafio from '../../Models/Desafio/desafio.js';
 import Nivel from '../../Models/Nivel/nivel.js';

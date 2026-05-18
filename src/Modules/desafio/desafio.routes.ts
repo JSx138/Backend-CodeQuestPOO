@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { getDesempenho, concluirDesafio } from './desafio.controller';
-import verificarToken from '../../Middlewares/auth.middleware';
+import { getDesempenho, concluirDesafio } from './desafio.controller.js';
+import verificarToken from '../../Middlewares/auth.middleware.js';
 
 const router = Router()
 

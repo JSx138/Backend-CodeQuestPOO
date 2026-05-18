@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { NiveisService } from "./niveis.service";
+import { NiveisService } from "./niveis.service.js";
 
 export const nivel = async (req: Request, res: Response): Promise<void> => {
     try {

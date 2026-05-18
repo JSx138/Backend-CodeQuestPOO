@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { DesempenhoService } from './desempenho.service';
+import { DesempenhoService } from './desempenho.service.js';
 
 export const getDesempenhoByAluno = async (req: Request, res: Response): Promise<void> => {
     try {

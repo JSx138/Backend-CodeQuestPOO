@@ -1,5 +1,5 @@
-import { handleError } from "../../Utils/error"
-import { NivelComDesafios } from '../../Utils/types';
+import { handleError } from "../../Utils/error.js"
+import { NivelComDesafios } from '../../Utils/types.js';
 import Nivel from "../../Models/Nivel/nivel.js";
 import Desafio from "../../Models/Desafio/desafio.js";
 

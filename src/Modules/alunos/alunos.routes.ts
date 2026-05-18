@@ -1,12 +1,11 @@
 import { Router } from 'express';
-import { getAll, criar } from './alunos.controller';
+import { getAll, criar } from './alunos.controller.js';
 
 const router = Router();
 
-// GET /api/alunos
 router.get('/', getAll);
 
 // POST /api/alunos
-router.post('/', criar);
+router.post('/registrar', criar);
 
 export default router;

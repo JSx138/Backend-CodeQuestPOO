@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { DesafiosService } from "./desafio.service"
-import { AuthRequest } from '../../Middlewares/auth.middleware';
+import { DesafiosService } from "./desafio.service.js"
+import { AuthRequest } from '../../Middlewares/auth.middleware.js';
 
 export const getDesempenho = async (req: AuthRequest, res: Response): Promise<void> => {
   try {

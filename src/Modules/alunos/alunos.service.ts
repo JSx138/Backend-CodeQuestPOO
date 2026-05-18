@@ -1,7 +1,9 @@
-import { handleError } from '../../Utils/error';
-import { Aluno as AlunoType, CriarAlunoDTO } from '../../Utils/types';
+import { handleError } from '../../Utils/error.js';
+import { Aluno as AlunoType, CriarAlunoDTO } from '../../Utils/types.js';
 import Aluno from '../../Models/Aluno/aluno.js';
 import ProgressoAluno from '../../Models/ProgressoAluno/progressoAluno.js';
+import EmailService from '../../Modules/email/email.service.js';
+import bcrypt from "bcryptjs";
 
 export class AlunosService {
 
@@ -20,10 +22,11 @@ export class AlunosService {
 
   static async criarAluno(dados: CriarAlunoDTO): Promise<AlunoType> {
     try {
+      const hash = await bcrypt.hash(dados.password, 10);
       const novoAluno = await Aluno.create({
         nome: dados.nome,
         email: dados.email,
-        password: dados.password,
+        password: hash,
         numero: dados.numero,
         turma: dados.turma,
         escola: dados.escola,
@@ -33,7 +36,6 @@ export class AlunosService {
         heroi_id: dados.heroi_id
       });
 
-      // Criar progresso inicial
       await ProgressoAluno.create({
         aluno_id: novoAluno.id,
         xp: 0,
@@ -43,6 +45,8 @@ export class AlunosService {
         tempo_total_jogo: 0,
         mapa_atual: 1
       });
+  
+      await EmailService.enviarEmailBoasVindas(novoAluno.email, novoAluno.nome);
 
       return novoAluno.get({ plain: true }) as AlunoType;
     } catch (error) {

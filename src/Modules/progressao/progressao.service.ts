@@ -1,5 +1,5 @@
-import { handleError } from '../../Utils/error';
-import { MapaProgresso, DashboardStats } from '../../Utils/types';
+import { handleError } from '../../Utils/error.js';
+import { MapaProgresso, DashboardStats } from '../../Utils/types.js';
 import Mapa from '../../Models/Mapa/mapa.js';
 import Nivel from '../../Models/Nivel/nivel.js';
 import DesempenhoDesafio from '../../Models/DesempenhoDesafio/desempenhoDesafio.js';

@@ -3,14 +3,14 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import sequelize from './Config/sequelize.js';
 
-import authRouter from './Modules/auth/auth.routes'
-import alunosRouter from './Modules/alunos/alunos.routes';
-import desafios from './Modules/desafio/desafio.routes'
-import desempenhoRouter from './Modules/desempenho/desempenho.routes';
-import levelRouter from './Modules/niveis/niveis.routes';
-import mapas from './Modules/mapas/mapas.routes';
-import progressoRoutes from './Modules/progressao/progressao.routes';
-import tempoRouter from './Modules/tempo/tempo.routes';
+import authRouter from './Modules/auth/auth.routes.js'
+import alunosRouter from './Modules/alunos/alunos.routes.js';
+import desafios from './Modules/desafio/desafio.routes.js'
+import desempenhoRouter from './Modules/desempenho/desempenho.routes.js';
+import levelRouter from './Modules/niveis/niveis.routes.js';
+import mapas from './Modules/mapas/mapas.routes.js';
+import progressoRoutes from './Modules/progressao/progressao.routes.js';
+import tempoRouter from './Modules/tempo/tempo.routes.js';
 
 dotenv.config();
 

@@ -1,4 +1,4 @@
-import { handleError } from '../../Utils/error';
+import { handleError } from '../../Utils/error.js';
 import Mapa from '../../Models/Mapa/mapa.js';
 
 export class MapasService {

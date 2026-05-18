@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { ProgressoService } from "./progressao.service"
-import { AuthRequest } from '../../Middlewares/auth.middleware';
+import { ProgressoService } from "./progressao.service.js"
+import { AuthRequest } from '../../Middlewares/auth.middleware.js';
 
 export const getProgessoDoAlunoPorMapa = async (req: AuthRequest, res: Response): Promise<void> => {
     try {

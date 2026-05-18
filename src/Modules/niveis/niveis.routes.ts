@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { nivel } from "./niveis.controller"
+import { nivel } from "./niveis.controller.js"
 
 const router = Router()
 

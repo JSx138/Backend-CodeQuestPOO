@@ -1,6 +1,6 @@
 import { Response, Request } from "express";
-import { TempoService } from "./tempo.service"
-import { AuthRequest } from '../../Middlewares/auth.middleware';
+import { TempoService } from "./tempo.service.js"
+import { AuthRequest } from '../../Middlewares/auth.middleware.js';
 
 export const registarTempo = async (req: AuthRequest, res: Response): Promise<void> => {
     try {

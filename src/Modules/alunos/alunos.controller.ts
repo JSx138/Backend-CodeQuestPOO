@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AlunosService } from './alunos.service';
+import { AlunosService } from './alunos.service.js';
 
 export const getAll = async (req: Request, res: Response): Promise<void> => {
   try {

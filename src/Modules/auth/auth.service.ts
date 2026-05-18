@@ -1,6 +1,7 @@
-import { generateToken } from "../../Utils/jwt";
-import { handleError } from "../../Utils/error"
-import { LoginResponse } from "../../Utils/types"
+import { generateToken } from "../../Utils/jwt.js";
+import { handleError } from "../../Utils/error.js"
+import { LoginResponse } from "../../Utils/types.js"
+import bcrypt from "bcryptjs";
 import Aluno from "../../Models/Aluno/aluno.js";
 import ProgressoAluno from "../../Models/ProgressoAluno/progressoAluno.js";
 
@@ -17,12 +18,12 @@ export class AuthService {
                 throw new Error('Credenciais inválidas');
             }
 
-            // 2. Valida password
-            if (user.password !== password) {
-                throw new Error('Credenciais inválidas');
+            const isPasswordValid = await bcrypt.compare(password, user.password);
+            
+            if (!isPasswordValid) {
+                throw new Error("Password inválida");
             }
 
-            // 3. Cria progresso inicial se não existir
             await ProgressoAluno.findOrCreate({
                 where: { aluno_id: user.id },
                 defaults: {
@@ -36,13 +37,11 @@ export class AuthService {
                 }
             });
 
-            // Atualiza último login
             await ProgressoAluno.update(
                 { ultimo_login: new Date() },
                 { where: { aluno_id: user.id } }
             );
 
-            // 4. Gera token
             const token = generateToken({ id: user.id, email: user.email });
 
             // 5. Remove password antes de devolver

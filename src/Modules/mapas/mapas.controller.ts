@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { MapasService } from "./mapas.service"
+import { MapasService } from "./mapas.service.js"
 
 export const getMapas = async (req: Request, res: Response): Promise<void> => {
     try {

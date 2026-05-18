@@ -1,4 +1,4 @@
-import { handleError } from '../../Utils/error';
+import { handleError } from '../../Utils/error.js';
 import TempoNivel from '../../Models/TempoNivel/tempoNivel.js';
 
 export class TempoService {

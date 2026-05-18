@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getDesempenhoByAluno } from "./desempenho.controller"
+import { getDesempenhoByAluno } from "./desempenho.controller.js"
 
 const router = Router()
 

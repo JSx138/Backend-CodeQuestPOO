@@ -1,6 +1,6 @@
 import { Router } from "express"
-import { getProgessoDoAlunoPorMapa, getDashboardAluno} from "./progressao.controller"
-import verificarToken from '../../Middlewares/auth.middleware';
+import { getProgessoDoAlunoPorMapa, getDashboardAluno} from "./progressao.controller.js"
+import verificarToken from '../../Middlewares/auth.middleware.js';
 
 const router = Router()
 
