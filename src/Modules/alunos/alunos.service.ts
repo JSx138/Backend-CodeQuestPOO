@@ -45,12 +45,45 @@ export class AlunosService {
         tempo_total_jogo: 0,
         mapa_atual: 1
       });
-  
+
       await EmailService.enviarEmailBoasVindas(novoAluno.email, novoAluno.nome);
 
       return novoAluno.get({ plain: true }) as AlunoType;
     } catch (error) {
       throw handleError('Erro ao criar aluno', error);
+    }
+  }
+
+  static async getMe(alunoId: number): Promise<AlunoType> {
+
+    try {
+
+      const aluno = await Aluno.findOne({
+        where: { id: alunoId },
+        attributes: [
+          "id",
+          "nome",
+          "email",
+          "numero",
+          "turma",
+          "escola",
+          "ano",
+          "ano_letivo"
+        ]
+      });
+
+      if (!aluno) {
+        throw new Error("Aluno não encontrado");
+      }
+
+      return aluno.get({ plain: true }) as AlunoType;
+
+    } catch (error) {
+
+      throw handleError(
+        "Erro ao buscar aluno",
+        error
+      );
     }
   }
 }

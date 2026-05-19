@@ -2,8 +2,8 @@ import { generateToken } from "../../Utils/jwt.js";
 import { handleError } from "../../Utils/error.js"
 import { LoginResponse } from "../../Utils/types.js"
 import bcrypt from "bcryptjs";
-import Aluno from "../../Models/Aluno/aluno.js";
-import ProgressoAluno from "../../Models/ProgressoAluno/progressoAluno.js";
+import { Sessoes, Aluno, ProgressoAluno } from "../../Models/index.js";
+import { JogadorTempoService } from "../jogadorTempo/jogTem.service.js";
 
 export class AuthService {
 
@@ -19,7 +19,7 @@ export class AuthService {
             }
 
             const isPasswordValid = await bcrypt.compare(password, user.password);
-            
+
             if (!isPasswordValid) {
                 throw new Error("Password inválida");
             }
@@ -42,15 +42,76 @@ export class AuthService {
                 { where: { aluno_id: user.id } }
             );
 
-            const token = generateToken({ id: user.id, email: user.email });
+            const token = generateToken({
+                id: user.id,
+                email: user.email
+            });
 
-            // 5. Remove password antes de devolver
-            const { password: _p, ...userSemPassword } = user;
+            await Sessoes.create({
+                aluno_id: user.id,
+                inicio: new Date(),
+                fim: null,
+                duracao: 0
+            })
+
+            const userJson = user.toJSON();
+
+            const { password: _p, ...userSemPassword } = userJson;
 
             return { token, user: userSemPassword as any };
         } catch (error) {
             throw handleError("Erro ao fazer login", error)
         }
 
+    }
+
+    static async logout(alunoId: number) {
+
+        try {
+
+            const sessao = await Sessoes.findOne({
+                where: {
+                    aluno_id: alunoId,
+                    fim: null
+                },
+                order: [["inicio", "DESC"]]
+            });
+
+            if (!sessao) {
+                throw new Error("Sessão não encontrada");
+            }
+
+            const agora = new Date();
+
+            const duracao = Math.floor(
+                (agora.getTime() - new Date(sessao.inicio).getTime())
+                / 1000
+                / 60
+            );
+
+            if (duracao <= 0) {
+                throw new Error("Sessão inválida");
+                return;
+            }
+
+            await sessao.update({
+                fim: agora,
+                duracao
+            });
+
+            await JogadorTempoService.updateUserTempo(alunoId, duracao);
+
+            return {
+                message: "Logout realizado com sucesso",
+                duracao
+            };
+
+        } catch (error) {
+
+            throw handleError(
+                "Erro ao fazer logout",
+                error
+            );
+        }
     }
 }

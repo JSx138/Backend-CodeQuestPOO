@@ -7,10 +7,13 @@ import authRouter from './Modules/auth/auth.routes.js'
 import alunosRouter from './Modules/alunos/alunos.routes.js';
 import desafios from './Modules/desafio/desafio.routes.js'
 import desempenhoRouter from './Modules/desempenho/desempenho.routes.js';
+
 import levelRouter from './Modules/niveis/niveis.routes.js';
 import mapas from './Modules/mapas/mapas.routes.js';
 import progressoRoutes from './Modules/progressao/progressao.routes.js';
 import tempoRouter from './Modules/tempo/tempo.routes.js';
+
+import jogadorTempoRouter from './Modules/jogadorTempo/jogTem.routes.js';
 
 dotenv.config();
 
@@ -28,10 +31,13 @@ app.use('/api/alunos', alunosRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/progresso', progressoRoutes);
 app.use('/api/mapas', mapas);
+
 app.use('/api/tempo', tempoRouter);
 app.use('/api/niveis', levelRouter);
 app.use('/api/desafios', desafios);
 app.use('/api/desempenho', desempenhoRouter);
+
+app.use('/api/jogadorTempo', jogadorTempoRouter);
 
 app.get('/api/health', async (_req: Request, res: Response) => {
   try {

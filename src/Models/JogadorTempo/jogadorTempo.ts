@@ -17,6 +17,9 @@ export default class JogadorTempo extends Model {
     @Column({ allowNull: false, defaultValue: 0, type: DataType.INTEGER })
     declare max_tempo_dia: number;
 
+    @Column({ allowNull: true, type: DataType.DATE, defaultValue: DataType.NOW })
+    declare ultima_semana_reset: Date;
+
     @Column({ allowNull: false, defaultValue: 0, type: DataType.INTEGER })
     declare tempo_total: number;
 

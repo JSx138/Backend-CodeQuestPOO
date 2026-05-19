@@ -21,6 +21,7 @@ import AlunoTrofeu from "../Models/AlunoTrofeu/alunoTrofeu.js"
 import AtividadeSemanal from "../Models/AtividadeSemanal/atividadeSemanal.js"
 import JogadorTempo from "../Models/JogadorTempo/jogadorTempo.js"
 import TempoNivel from "../Models/TempoNivel/tempoNivel.js"
+import Sessoes from "../Models/Sessoes/sessoes.js"
 
 dotenv.config();
 
@@ -54,6 +55,7 @@ const sequelize = new Sequelize({
         AtividadeSemanal,
         JogadorTempo,
         TempoNivel,
+        Sessoes
     ],
 });
 

@@ -1,34 +1,34 @@
-import bcrypt from "bcryptjs";
-import sequelize from "../Config/sequelize.js";
-import { Aluno } from "../Models/index.js";
+import sequelize from '../Config/sequelize.js';
 
-export async function run() {
+async function run() {
+
+  const t = await sequelize.transaction();
+
   try {
-    await sequelize.authenticate(); 
-    const alunos = await Aluno.findAll();
 
-    for (const aluno of alunos) {
-      const password = aluno.password;
+    await sequelize.query(`
+    
+    ALTER TABLE jogador_tempo ADD COLUMN ultima_semana_reset TIMESTAMP DEFAULT NOW();
 
-      if (password.startsWith("$2a$") || password.startsWith("$2b$")) {
-        console.log(`Skip: ${aluno.email} já tem hash`);
-        continue;
-      }
+    `, {
+      transaction: t,
+    });
 
-      const hash = await bcrypt.hash(password, 10);
+    await t.commit();
 
-      await aluno.update({
-        password: hash
-      });
+    console.log("✅ Tabela jogador_sessoes criada com sucesso");
 
-      console.log(`Migrado: ${aluno.email}`);
-    }
+  } catch (err) {
 
-    console.log("✅ Migração concluída com sucesso!");
+    await t.rollback();
 
-  } catch (error) {
-    console.error("❌ Erro na migração:", error);
+    console.error('❌ Erro ao criar tabela:', err);
+
+  } finally {
+
+    await sequelize.close();
+
   }
 }
 
-run(); 
+run();

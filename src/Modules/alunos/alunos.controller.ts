@@ -36,3 +36,20 @@ export const criar = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getMe = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const alunoId = Number(req.alunoId!)
+
+    if (isNaN(alunoId)) {
+      res.status(400).json({ message: 'alunoId é obrigatório' });
+    }
+
+    const aluno = await AlunosService.getMe(alunoId);
+    res.json(aluno);
+  } catch (err) {
+    const error = err as Error;
+    console.error('[AlunosController] obter aluno atual:', err);
+    res.status(500).json({ error: error.message });
+  }
+}
