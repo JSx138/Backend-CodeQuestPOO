@@ -8,8 +8,8 @@ async function run() {
 
     await sequelize.query(`
     
-    ALTER TABLE jogador_tempo ADD COLUMN ultima_semana_reset TIMESTAMP DEFAULT NOW();
-
+    ALTER TABLE niveis 
+     ADD COLUMN coins_recompensa INTEGER DEFAULT 100;
     `, {
       transaction: t,
     });

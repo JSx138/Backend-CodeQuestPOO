@@ -6,7 +6,6 @@ import Aluno from "../Aluno/aluno.js";
 
 @Table({ tableName: "progresso_aluno", timestamps: false })
 export default class ProgressoAluno extends Model {
-
     // PK composta é o aluno_id — sem id separado na tabela
     @ForeignKey(() => Aluno)
     @Column({ primaryKey: true, type: DataType.INTEGER })
@@ -26,9 +25,15 @@ export default class ProgressoAluno extends Model {
 
     @Column({ allowNull: false, defaultValue: 0, type: DataType.INTEGER })
     declare streak: number;
+    
+    @Column({ allowNull: false, defaultValue: 0, type: DataType.INTEGER })
+    declare streak_dias: number;
 
     @Column({ allowNull: false, defaultValue: 0, type: DataType.INTEGER })
     declare tempo_total_jogo: number;
+
+    @Column({ allowNull: true, type: DataType.DATE })
+    declare ultimo_dia_streak: Date | null;
 
     @Column({ allowNull: true, type: DataType.DATE })
     declare ultimo_login: Date | null;

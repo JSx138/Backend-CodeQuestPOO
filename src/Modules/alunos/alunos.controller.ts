@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { AlunosService } from './alunos.service.js';
+import { handleError } from '../../Utils/error.js';
 
 export const getAll = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -51,5 +52,21 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
     const error = err as Error;
     console.error('[AlunosController] obter aluno atual:', err);
     res.status(500).json({ error: error.message });
+  }
+}
+
+export const getAlunoById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const alunoId = Number(req.params.id);
+
+    if (isNaN(alunoId)) {
+      res.status(400).json({ message: 'alunoId é obrigatório' });
+    }
+
+    const aluno = AlunosService.getById(alunoId);
+    res.json(aluno);
+
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao buscar aluno por Id" });
   }
 }

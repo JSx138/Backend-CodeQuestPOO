@@ -23,6 +23,9 @@ export default class Desafio extends Model {
 
     @Column({ allowNull: false, defaultValue: 50, type: DataType.INTEGER })
     declare xp_recompensa: number;
+    
+    @Column({ allowNull: false, defaultValue: 10, type: DataType.INTEGER })
+    declare coins_recompensa: number;
 
     @Column({ allowNull: false, type: DataType.INTEGER })
     declare ordem: number;

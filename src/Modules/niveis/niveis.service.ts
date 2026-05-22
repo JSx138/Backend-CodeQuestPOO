@@ -24,6 +24,7 @@ export class NiveisService {
         nivel: n.nivel,
         nome: n.nome,
         descricao: n.descricao,
+        coins: n.coins_recompensa,
         xp: n.xp_recompensa,
         total_desafios: n.total_desafios,
         desafios: (n.desafios || []).map(d => ({
@@ -31,6 +32,7 @@ export class NiveisService {
           nome: d.nome,
           descricao: d.descricao,
           xp: d.xp_recompensa,
+          coins: d.coins_recompensa,
           ordem: d.ordem
         }))
       }));

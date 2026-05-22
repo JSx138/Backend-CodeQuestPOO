@@ -19,6 +19,15 @@ export default class TempoNivel extends Model {
     @Column({ allowNull: true, type: DataType.INTEGER })
     declare tempo_total: number | null;
 
+    @Column({ allowNull: true, type: DataType.INTEGER })
+    declare tempo_primeira_conclusao: number | null;
+
+    @Column({ allowNull: true, type: DataType.INTEGER })
+    declare melhor_tempo: number | null;
+
+    @Column({ allowNull: true, type: DataType.INTEGER, defaultValue: 1})
+    declare tentativas: number;
+
     // ─── ASSOCIATIONS ────────────────────────────────────────────────
     @BelongsTo(() => Aluno, "aluno_id")
     declare aluno: Aluno;

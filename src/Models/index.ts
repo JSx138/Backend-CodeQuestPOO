@@ -20,3 +20,4 @@ export { default as AtividadeSemanal } from "./AtividadeSemanal/atividadeSemanal
 export { default as JogadorTempo } from "./JogadorTempo/jogadorTempo.js"
 export { default as TempoNivel } from "./TempoNivel/tempoNivel.js"
 export { default as Sessoes } from "./Sessoes/sessoes.js"
+export { default as HistoricoTempoSemanal } from "./HistoricoSemanal/historicoSemanal.js"

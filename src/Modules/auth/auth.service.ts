@@ -54,6 +54,47 @@ export class AuthService {
                 duracao: 0
             })
 
+            const progresso = await ProgressoAluno.findByPk(user.id, {
+                attributes: ["ultimo_dia_streak", "streak_dias"]
+            })
+
+            const hoje = new Date()
+            const hojeString = hoje.toISOString().split("T")[0];
+
+            if (progresso) {
+                const ultimoDia = progresso.ultimo_dia_streak
+                    ? new Date(progresso.ultimo_dia_streak)
+                    : null;
+
+                let novoStreak = progresso.streak_dias || 0
+
+                if (ultimoDia) {
+                    const ontem = new Date(ultimoDia)
+                    ontem.setDate(ontem.getDate() + 1)
+
+                    const ultimoDiaString = ultimoDia.toISOString().split("T")[0];
+                    const ontemString = ontem.toISOString().split("T")[0];
+
+                    if (ultimoDiaString === hojeString) {
+
+                    } 
+                    else if (ultimoDiaString === ontemString) {
+                        novoStreak += 1
+                    }
+                    else {
+                        novoStreak = 1
+                    }
+                }
+                else {
+                    novoStreak = 1
+                }
+
+                await ProgressoAluno.update({
+                    ultimo_dia_streak: hoje,
+                    streak_dias: novoStreak
+                }, { where: { aluno_id: user.id } })
+            }
+
             const userJson = user.toJSON();
 
             const { password: _p, ...userSemPassword } = userJson;
@@ -62,7 +103,6 @@ export class AuthService {
         } catch (error) {
             throw handleError("Erro ao fazer login", error)
         }
-
     }
 
     static async logout(alunoId: number) {

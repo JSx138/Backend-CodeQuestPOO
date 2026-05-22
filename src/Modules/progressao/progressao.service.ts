@@ -1,5 +1,5 @@
 import { handleError } from '../../Utils/error.js';
-import { MapaProgresso, DashboardStats } from '../../Utils/types.js';
+import { MapaProgresso } from '../../Utils/types.js';
 import Mapa from '../../Models/Mapa/mapa.js';
 import Nivel from '../../Models/Nivel/nivel.js';
 import DesempenhoDesafio from '../../Models/DesempenhoDesafio/desempenhoDesafio.js';
@@ -76,14 +76,25 @@ export class ProgressoService {
     }
   }
 
-  static async getDashboard(alunoId: number): Promise<DashboardStats> {
+  static async getDashboard(alunoId: number) {
     try {
       const progress = await ProgressoAluno.findOne({
         where: { aluno_id: alunoId }
       });
 
       if (!progress) {
-        return { xp_total: 0, nivel_atual: 1, coins: 0, streak: 0, tempo_total_jogo: 0, desafios_completos: 0, total_desafios: 0, porcentagem_completa: 0 };
+        return { 
+          xp_total: 0, 
+          nivel_atual: 1, 
+          coins: 0, 
+          streak: 0, 
+          tempo_total_jogo: 0, 
+          desafios_completos: 0, 
+          total_desafios: 0, 
+          porcentagem_completa: 0, 
+          streak_dias: 0, 
+          ultimo_dia_streak: null 
+        };
       }
 
       const totalDesafios = await Nivel.sum('total_desafios') || 0;
@@ -100,6 +111,8 @@ export class ProgressoService {
         coins: Number(progress.coins || 0),
         streak: Number(progress.streak || 0),
         tempo_total_jogo: Number(progress.tempo_total_jogo || 0),
+        streak_dias: Number(progress.streak_dias || 0),
+        ultimo_dia_streak: progress.ultimo_dia_streak || null,
         desafios_completos: desafiosCompletos,
         total_desafios: totalDesafios,
         porcentagem_completa: totalDesafios === 0 ? 0 : Math.min((desafiosCompletos / totalDesafios) * 100, 100),

@@ -1,10 +1,12 @@
 import { handleError } from '../../Utils/error.js';
 import { calcularXpGanho, calcularNivel } from '../../Utils/xpSystem.js';
+import { calcularCoinsGanho } from '../../Utils/coinsSystem.js';
 import { ConcluirDesafioDTO, ConcluirDesafioResponse, DesempenhoXP } from '../../Utils/types.js';
 import ProgressoAluno from '../../Models/ProgressoAluno/progressoAluno.js';
 import Desafio from '../../Models/Desafio/desafio.js';
 import Nivel from '../../Models/Nivel/nivel.js';
 import DesempenhoDesafio from '../../Models/DesempenhoDesafio/desempenhoDesafio.js';
+import { TempoService } from '../tempo/tempo.service.js';
 
 export class DesafiosService {
 
@@ -86,8 +88,10 @@ export class DesafiosService {
             }
 
             const xpDesafio = calcularXpGanho(desafio.xp_recompensa, primeiraVez);
+            const coinsDesafio = calcularCoinsGanho(desafio.coins_recompensa, primeiraVez);
 
             let xpNivel = 0;
+            let coinsNivel = 0;
             let nivelCompleto = false;
 
             if (primeiraVez) {
@@ -101,13 +105,43 @@ export class DesafiosService {
 
                 if (totalConcluidos >= desafio.nivel.total_desafios) {
                     xpNivel = desafio.nivel.xp_recompensa;
+                    coinsNivel = desafio.nivel.coins_recompensa;
                     nivelCompleto = true;
+
+                    const desempenhosNivel = await DesempenhoDesafio.findAll({
+                        include: [{
+                            model: Desafio,
+                            where: {
+                                nivel_id: desafio.nivel_id
+                            }
+                        }],
+                        where: {
+                            aluno_id: alunoId
+                        }
+                    });
+
+                    const tempoTotalNivel = desempenhosNivel.reduce(
+                        (total, desempenho) => 
+                            total + (desempenho.tempo_desafio ?? 0),
+                        0
+                    );
+
+                    await TempoService.registarTempo(
+                        alunoId,
+                        desafio.nivel_id,
+                        tempoTotalNivel,
+                    );
                 }
             }
 
             const xpTotal = xpDesafio + xpNivel;
+            const coinsTotal = coinsDesafio + coinsNivel;
             await ProgressoAluno.increment(
-                { xp: xpTotal },
+                {
+                    xp: xpTotal,
+                    coins: coinsTotal,
+                    tempo_total_jogo: tempo_desafio
+                },
                 { where: { aluno_id: alunoId } }
             );
 
@@ -141,10 +175,36 @@ export class DesafiosService {
                 streak = Number(dados.novo_streak || 0);
             }
 
+            if (progresso && nivelCompleto) {
+                const nivelAtualAluno = progresso.nivel_atual;
+                const mapaAtualAluno = progresso.mapa_atual;
+
+                const proximoNivel = await Nivel.findOne({
+                    where: {
+                        mapa_id: mapaAtualAluno,
+                        nivel: nivelAtualAluno + 1
+                    }
+                });
+
+                if (proximoNivel) {
+                    await progresso.update({
+                        nivel_atual: nivelAtualAluno + 1
+                    });
+                    await progresso.reload();
+                }
+                else {
+                    await progresso.update({
+                        mapa_atual: mapaAtualAluno + 1,
+                        nivel_atual: 1
+                    });
+                }
+            }
+
             return {
                 sucesso: true,
                 primeiraVez,
                 xpGanho: { desafio: xpDesafio, nivelBonus: xpNivel, total: xpTotal },
+                coinsGanho: { desafio: coinsDesafio, nivelBonus: coinsNivel, total: coinsTotal },
                 nivelCompleto,
                 nivelMaximo,
                 proximoNivel: proximoNivel ? proximoNivel.get({ plain: true }) : null,

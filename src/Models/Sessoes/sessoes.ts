@@ -51,6 +51,13 @@ export default class JogadorSessao extends Model {
   })
   declare duracao: number;
 
+  @Column({
+    allowNull: false,
+    type: DataType.DATE
+  })
+  declare created_at: Date;
+
+
   // ─── ASSOCIATIONS ─────────────────────────────
 
   @BelongsTo(() => Aluno)

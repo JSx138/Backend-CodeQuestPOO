@@ -4,13 +4,27 @@ import Aluno from '../../Models/Aluno/aluno.js';
 import ProgressoAluno from '../../Models/ProgressoAluno/progressoAluno.js';
 import EmailService from '../../Modules/email/email.service.js';
 import bcrypt from "bcryptjs";
+import { AlunoAchievement, JogadorTempo, Trofeu, Heroi, Avatar, Achievement } from '../../Models/index.js';
 
 export class AlunosService {
 
   static async getAllAlunos(): Promise<AlunoType[]> {
     try {
       const getAllAlunos = await Aluno.findAll({
-        attributes: ['id', 'nome', 'email', 'numero', 'turma', 'escola', 'ano', 'ano_letivo', 'avatar_id', 'heroi_id', 'ativo', 'data_registo'],
+        attributes: [
+          'id',
+          'nome',
+          'email',
+          'numero',
+          'turma',
+          'escola',
+          'ano',
+          'ano_letivo',
+          'avatar_id',
+          'heroi_id',
+          'ativo',
+          'data_registo'
+        ],
         order: [['id', 'ASC']]
       });
 
@@ -55,7 +69,6 @@ export class AlunosService {
   }
 
   static async getMe(alunoId: number): Promise<AlunoType> {
-
     try {
 
       const aluno = await Aluno.findOne({
@@ -68,7 +81,20 @@ export class AlunosService {
           "turma",
           "escola",
           "ano",
-          "ano_letivo"
+          "ano_letivo",
+          "data_registo"
+        ],
+        include: [
+          {
+            model: ProgressoAluno,
+            as: "progresso",
+            attributes: ["mapa_atual", "nivel_atual", "xp", "tempo_total_jogo"]
+          },
+          {
+            model: Avatar,
+            as: "avatar",
+            attributes: ["nome", "caminho_imagem"]
+          }
         ]
       });
 
@@ -84,6 +110,61 @@ export class AlunosService {
         "Erro ao buscar aluno",
         error
       );
+    }
+  }
+
+  static async getById(AlunoId: number) {
+    try {
+      const getAluno = await Aluno.findOne({
+        where: { id: AlunoId },
+        attributes: [
+          "id",
+          "nome",
+          "email",
+          "numero",
+          "turma",
+          "escola",
+          "ano",
+          "ano_letivo"
+        ],
+        include: [
+          {
+            model: ProgressoAluno,
+            as: "progresso",
+            attributes: ["mapa_atual", "nivel_atual", "xp", "tempo_total_jogo"]
+          },
+          {
+            model: AlunoAchievement,
+            as: "achievements",
+            attributes: ["total", "data_conclusao"],
+            include: [
+              {
+                model: Achievement,
+                as: "achievement",
+                attributes: ["titulo", "icone"]
+              }
+            ]
+          },
+          {
+            model: Trofeu,
+            as: "trofeus",
+            attributes: ["nome", "icone"],
+          },
+          {
+            model: Avatar,
+            as: "avatar",
+            attributes: ["nome", "caminho_imagem"]
+          },
+          {
+            model: Heroi,
+            as: "heroi",
+            attributes: ["nome", "imagem"]
+          }
+        ]
+      })
+      return getAluno
+    } catch (error) {
+      throw handleError('Erro ao buscar aluno', error)
     }
   }
 }

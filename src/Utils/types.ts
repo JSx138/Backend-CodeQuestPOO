@@ -106,13 +106,18 @@ export interface ConcluirDesafioResponse {
   nivelCompleto: boolean;
   nivelMaximo: boolean;
   proximoNivel: any;
+  coinsGanho: {
+    desafio: number;
+    nivelBonus: number;
+    total: number;
+  };
   progressao: any;
   novoStreak?: number;
 }
 
 export interface DesempenhoXP {
   xp: number;
-  progressao: ReturnType<typeof import('./xpSystem').calcularNivel>;
+  progressao: ReturnType<typeof import('./xpSystem.js').calcularNivel>;
 }
 
 export interface DesempenhoDesafio {
@@ -168,15 +173,4 @@ export interface MapaProgresso {
   desafios_completos: number;
   porcentagem: number;
   desbloqueado: boolean;
-}
-
-export interface DashboardStats {
-  xp_total: number;
-  nivel_atual: number;
-  coins: number;
-  streak: number;
-  tempo_total_jogo: number;
-  desafios_completos: number;
-  total_desafios: number;
-  porcentagem_completa: number;
 }

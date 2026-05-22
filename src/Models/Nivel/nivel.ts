@@ -31,6 +31,9 @@ export default class Nivel extends Model {
     @Column({ allowNull: false, defaultValue: 50, type: DataType.INTEGER })
     declare xp_recompensa: number;
 
+    @Column({ allowNull: false, type: DataType.INTEGER, defaultValue: 100})
+    declare coins_recompensa: number;
+
     // ─── ASSOCIATIONS ────────────────────────────────────────────────
     @BelongsTo(() => Mapa, { foreignKey: "mapa_id", as: "mapa" })
     declare mapa: Mapa;
