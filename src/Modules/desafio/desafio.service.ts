@@ -7,6 +7,7 @@ import Desafio from '../../Models/Desafio/desafio.js';
 import Nivel from '../../Models/Nivel/nivel.js';
 import DesempenhoDesafio from '../../Models/DesempenhoDesafio/desempenhoDesafio.js';
 import { TempoService } from '../tempo/tempo.service.js';
+import { TipoErro } from '../../Models/index.js';
 
 export class DesafiosService {
 
@@ -73,18 +74,22 @@ export class DesafiosService {
             const primeiraVez = created;
 
             if (!primeiraVez) {
-                await desempenho.update({
-                    tentativas: desempenho.tentativas + 1,
-                    respostas_certas,
-                    respostas_erradas,
-                    ajudas_usadas,
-                    tempo_desafio,
-                    score,
-                    tipo_erro_id,
-                    tipo_feedback_id,
-                    feedback_ia,
-                    data_execucao: new Date()
-                });
+                try {
+                    await desempenho.update({
+                        tentativas: desempenho.tentativas + 1,
+                        respostas_certas,
+                        respostas_erradas,
+                        ajudas_usadas,
+                        tempo_desafio,
+                        score,
+                        tipo_erro_id,
+                        tipo_feedback_id,
+                        feedback_ia,
+                        data_execucao: new Date()
+                    });
+                } catch (updateError) {
+                    throw updateError;
+                }
             }
 
             const xpDesafio = calcularXpGanho(desafio.xp_recompensa, primeiraVez);
@@ -94,8 +99,25 @@ export class DesafiosService {
             let coinsNivel = 0;
             let nivelCompleto = false;
 
-            if (primeiraVez) {
-                const totalConcluidos = await DesempenhoDesafio.count({
+            const totalConcluidos = await DesempenhoDesafio.count({
+                include: [{
+                    model: Desafio,
+                    where: { nivel_id: desafio.nivel_id }
+                }],
+                where: { aluno_id: alunoId }
+            });
+
+            if (totalConcluidos >= desafio.nivel.total_desafios) {
+                nivelCompleto = true;
+
+                if (primeiraVez) {
+                    xpNivel = desafio.nivel.xp_recompensa;
+                    coinsNivel = desafio.nivel.coins_recompensa;
+                }
+            }
+
+            if (nivelCompleto) {
+                const desempenhosNivel = await DesempenhoDesafio.findAll({
                     include: [{
                         model: Desafio,
                         where: { nivel_id: desafio.nivel_id }
@@ -103,39 +125,25 @@ export class DesafiosService {
                     where: { aluno_id: alunoId }
                 });
 
-                if (totalConcluidos >= desafio.nivel.total_desafios) {
-                    xpNivel = desafio.nivel.xp_recompensa;
-                    coinsNivel = desafio.nivel.coins_recompensa;
-                    nivelCompleto = true;
+                const tempoTotalNivel = desempenhosNivel.reduce(
+                    (total, desempenho) => total + (desempenho.tempo_desafio ?? 0),
+                    0
+                );
 
-                    const desempenhosNivel = await DesempenhoDesafio.findAll({
-                        include: [{
-                            model: Desafio,
-                            where: {
-                                nivel_id: desafio.nivel_id
-                            }
-                        }],
-                        where: {
-                            aluno_id: alunoId
-                        }
-                    });
-
-                    const tempoTotalNivel = desempenhosNivel.reduce(
-                        (total, desempenho) => 
-                            total + (desempenho.tempo_desafio ?? 0),
-                        0
-                    );
-
+                try {
                     await TempoService.registarTempo(
                         alunoId,
                         desafio.nivel_id,
                         tempoTotalNivel,
                     );
+                } catch (tempoError) {
+                    throw tempoError;
                 }
             }
 
             const xpTotal = xpDesafio + xpNivel;
             const coinsTotal = coinsDesafio + coinsNivel;
+
             await ProgressoAluno.increment(
                 {
                     xp: xpTotal,
@@ -145,7 +153,22 @@ export class DesafiosService {
                 { where: { aluno_id: alunoId } }
             );
 
-            const progresso = await ProgressoAluno.findOne({ where: { aluno_id: alunoId } });
+            if (tipo_erro_id !== null) {
+                const [erroJogador] = await TipoErro.findOrCreate({
+                    where: { aluno_id: alunoId, tipo_erro_id },
+                    defaults: { aluno_id: alunoId, tipo_erro_id, quantidade: 1 }
+                });
+
+                if (!erroJogador.isNewRecord) {
+                    await erroJogador.increment('quantidade', { by: 1 });
+                }
+            }
+
+            const progresso = await ProgressoAluno.findOne(
+                {
+                    where: { aluno_id: alunoId }
+                }
+            );
             const progressao = calcularNivel(progresso?.xp || 0);
 
             let proximoNivel = null;
@@ -176,8 +199,8 @@ export class DesafiosService {
             }
 
             if (progresso && nivelCompleto) {
-                const nivelAtualAluno = progresso.nivel_atual;
-                const mapaAtualAluno = progresso.mapa_atual;
+                const nivelAtualAluno = desafio.nivel.nivel;
+                const mapaAtualAluno = desafio.nivel.mapa_id;
 
                 const proximoNivel = await Nivel.findOne({
                     where: {
@@ -203,10 +226,22 @@ export class DesafiosService {
             return {
                 sucesso: true,
                 primeiraVez,
-                xpGanho: { desafio: xpDesafio, nivelBonus: xpNivel, total: xpTotal },
-                coinsGanho: { desafio: coinsDesafio, nivelBonus: coinsNivel, total: coinsTotal },
+
+                xpGanho: {
+                    desafio: xpDesafio,
+                    nivelBonus: xpNivel,
+                    total: xpTotal
+                },
+
+                coinsGanho: {
+                    desafio: coinsDesafio,
+                    nivelBonus: coinsNivel,
+                    total: coinsTotal
+                },
+
                 nivelCompleto,
                 nivelMaximo,
+
                 proximoNivel: proximoNivel ? proximoNivel.get({ plain: true }) : null,
                 progressao,
                 novoStreak: streak,

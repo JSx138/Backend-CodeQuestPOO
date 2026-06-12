@@ -70,7 +70,7 @@ export class AuthService {
 
                 if (ultimoDia) {
                     const ontem = new Date(ultimoDia)
-                    ontem.setDate(ontem.getDate() + 1)
+                    ontem.setDate(ontem.getDate() - 1)
 
                     const ultimoDiaString = ultimoDia.toISOString().split("T")[0];
                     const ontemString = ontem.toISOString().split("T")[0];

@@ -14,7 +14,9 @@ import mapas from './Modules/mapas/mapas.routes.js';
 import progressoRoutes from './Modules/progressao/progressao.routes.js';
 import tempoRouter from './Modules/tempo/tempo.routes.js';
 
+import pdf from './Modules/pdf/pdf.routes.js';
 import jogadorTempoRouter from './Modules/jogadorTempo/jogTem.routes.js';
+import leaderBoardRouter from './Modules/leaderBoard/leaderBoard.routes.js';
 
 dotenv.config();
 
@@ -31,14 +33,20 @@ app.get("/api/feedback-ai/teste", (_req: Request, res: Response) => {
 });
 
 app.use('/api/alunos', alunosRouter);
+
 app.use('/api/auth', authRouter);
 app.use('/api/progresso', progressoRoutes);
 app.use('/api/mapas', mapas);
+
 app.use('/api/tempo', tempoRouter);
 app.use('/api/niveis', levelRouter);
 app.use('/api/desafios', desafios);
+
 app.use('/api/desempenho', desempenhoRouter);
 app.use('/api/jogadorTempo', jogadorTempoRouter);
+app.use('/api/pdf', pdf);
+
+app.use('/api/leaderboard', leaderBoardRouter);
 
 app.get('/api/health', async (_req: Request, res: Response) => {
   try {

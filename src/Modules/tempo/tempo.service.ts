@@ -47,7 +47,7 @@ export class TempoService {
             await registo.update({
                 tempo_total: tempoTotal + tempoNivel,
                 melhor_tempo: melhorTempo,
-                tentativas: tempoTotal + 1
+                tentativas: (registo.tentativas ?? 0) + 1
             });
 
         } catch (error) {

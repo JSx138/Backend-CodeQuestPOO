@@ -39,15 +39,15 @@ export class Pdf {
                     },
                     {
                         model: TempoNivel,
-                        as: "tempo_nivel",
+                        as: "temposNiveis",
                         attributes: ["tempo_total", "tempo_primeira_conclusao", "melhor_tempo", "tentativas"],
                         include: [{
                             model: Nivel,
-                            as: 'nivel',
+                            as: "nivel",
                             attributes: ["nivel", "nome", "descricao"],
                             include: [{
                                 model: Mapa,
-                                as: 'mapa',
+                                as: "mapa",
                                 attributes: ["nome"]
                             }]
                         }]
@@ -71,7 +71,7 @@ export class Pdf {
 
             const progresso = aluno.progresso || {};
             const avatar = aluno.avatar || {};
-            const tempoNivel = (aluno as any).tempo_nivel || [];
+            const tempoNivel = (aluno as any).temposNiveis || [];
 
             const tempoTotal = Math.floor((progresso.tempo_total_jogo || 0) / 60);
 
@@ -377,7 +377,7 @@ export class Pdf {
 
                     <!-- FOOTER -->
                     <div class="footer">
-                        <p>CodeQuest © 2024 - Plataforma de Aprendizagem Gamificada</p>
+                        <p>CodeQuestPOO © 2025 - Plataforma de Aprendizagem Gamificada</p>
                         <p>Este relatório foi gerado automaticamente pelo sistema.</p>
                     </div>
                 </div>
@@ -389,4 +389,42 @@ export class Pdf {
             throw handleError('Erro ao construir HTML do PDF', error);
         }
     }
+
+    static async generatePdf(alunoId: number) {
+        let browser
+
+        try {
+            const html = await this.buildHtml(alunoId)
+
+            browser = await puppeteer.launch({
+                headless: true,
+            })
+            const page = await browser.newPage()
+
+            await page.setContent(html, {
+                waitUntil: "domcontentloaded",
+            });
+
+            const pdfBuffer = await page.pdf({
+                format: "A4",
+                printBackground: true,
+                margin: {
+                    top: "20px",
+                    right: "20px",
+                    bottom: "20px",
+                    left: "20px",
+                },
+            });
+
+            await page.close();
+            await browser.close();
+
+            return pdfBuffer;
+
+        } catch (error) {
+            if (browser) await browser.close();
+            throw handleError("Erro ao gerar Pdf", error)
+        }
+    }
+
 }
