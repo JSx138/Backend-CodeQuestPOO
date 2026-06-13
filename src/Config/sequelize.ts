@@ -1,6 +1,6 @@
 import { Sequelize } from "sequelize-typescript";
 import dotenv from "dotenv";
-
+import { Amizade } from "../Models/index.js";
 import Aluno from "../Models/Aluno/aluno.js"
 import Avatar from "../Models/Avatar/avatar.js"
 import Desafio from "../Models/Desafio/desafio.js"
@@ -58,7 +58,8 @@ const sequelize = new Sequelize({
         JogadorTempo,
         TempoNivel,
         Sessoes,
-        HistoricoTempoSemanal
+        HistoricoTempoSemanal,
+        Amizade
     ],
 });
 

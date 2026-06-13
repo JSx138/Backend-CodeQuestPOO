@@ -1,8 +1,15 @@
 import { Router } from 'express';
-import { getAll, criar, getMe, getAlunoById } from './alunos.controller.js';
+import { getAll, criar, getMe, getAlunoById, atualizarOnline} from './alunos.controller.js';
 import verificarToken from '../../Middlewares/auth.middleware.js';
 
+
 const router = Router();
+
+router.patch(
+    '/online',
+    verificarToken,
+    atualizarOnline
+);
 
 router.get(
     '/', 

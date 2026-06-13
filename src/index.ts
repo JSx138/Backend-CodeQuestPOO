@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import sequelize from './Config/sequelize.js';
 import feedbackAIRoutes from "./Modules/feedbackAI/feedbackAI.routes.js";
+import amizadesRoutes from "./Modules/amizades/amizades.route.js";
 
 import authRouter from './Modules/auth/auth.routes.js'
 import alunosRouter from './Modules/alunos/alunos.routes.js';
@@ -25,6 +26,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.text({ type: "text/plain" }));
+
+app.use("/api/amizades", amizadesRoutes);
 
 app.use("/api/feedback-ai", feedbackAIRoutes);
 

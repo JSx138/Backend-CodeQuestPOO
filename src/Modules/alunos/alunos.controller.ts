@@ -69,4 +69,23 @@ export const getAlunoById = async (req: Request, res: Response): Promise<void> =
   } catch (error) {
     res.status(500).json({ error: "Erro ao buscar aluno por Id" });
   }
+
+  
 }
+
+export const atualizarOnline = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const alunoId = Number(req.alunoId);
+
+    if (isNaN(alunoId)) {
+      res.status(400).json({ message: "alunoId é obrigatório" });
+      return;
+    }
+
+    const resultado = await AlunosService.atualizarUltimoAcesso(alunoId);
+    res.json(resultado);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};

@@ -3,18 +3,21 @@ import type { FeedbackInput } from "./feedbackAI.types.js";
 
 const INSTRUCOES_FEEDBACK: Record<number, string> = {
   1: `
-- O aluno errou mas estava perto. Confirma apenas se a resposta está certa ou errada.
-- Não expliques o porquê. Máximo 2 frases.
+- Diz apenas se está certo ou errado.
+- Dá uma dica muito curta.
+- Máximo 10 palavras.
   `.trim(),
 
   2: `
-- Explica qual foi o erro e o conceito envolvido.
-- Não dês a solução completa. Máximo 3 frases.
+- Indica o erro principal.
+- Dá uma dica curta para corrigir.
+- Máximo 12 palavras.
   `.trim(),
 
   3: `
-- O aluno está com muita dificuldade. Dá uma estratégia clara para resolver o problema.
-- Podes dar um exemplo parcial mas nunca o código final completo. Máximo 4 frases.
+- Dá uma orientação simples para continuar.
+- Não expliques demasiado.
+- Máximo 15 palavras.
   `.trim(),
 };
 
@@ -27,31 +30,52 @@ const NOMES_TIPO_ERRO: Record<number, string> = {
   6: "Polimorfismo",
 };
 
+const limitarFeedback = (texto: string): string => {
+  const limpo = texto
+    .replace(/\n/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (limpo.length <= 80) {
+    return limpo;
+  }
+
+  return limpo.slice(0, 77).trim() + "...";
+};
+
 export const gerarFeedbackIA = async (
   input: FeedbackInput
 ): Promise<string> => {
-  const instrucoes = INSTRUCOES_FEEDBACK[input.tipo_feedback_id] 
-    ?? INSTRUCOES_FEEDBACK[2];
+  const instrucoes =
+    INSTRUCOES_FEEDBACK[input.tipo_feedback_id] ?? INSTRUCOES_FEEDBACK[2];
 
-  const nomeErro = input.tipo_erro_id 
-    ? NOMES_TIPO_ERRO[input.tipo_erro_id] 
+  const nomeErro = input.tipo_erro_id
+    ? NOMES_TIPO_ERRO[input.tipo_erro_id]
     : null;
 
   const prompt = `
 És o mentor de um jogo educativo de Programação Orientada a Objetos.
 
-REGRAS GERAIS:
-- Responde em português de Portugal.
+REGRAS OBRIGATÓRIAS:
+- Responde exclusivamente em português de Portugal.
+- Nunca uses português do Brasil.
+- Responde numa única frase.
+- Máximo 15 palavras.
+- Sê direto e objetivo.
+- Não uses listas.
+- Não uses emojis.
+- Não escrevas código.
 - Não dês a solução completa.
-- Não escrevas o código final.
 - Trata o aluno por "tu".
+- A resposta deve caber num balão de fala pequeno.
 
-INSTRUÇÃO PARA ESTE FEEDBACK (segue à risca):
+INSTRUÇÃO ESPECÍFICA:
 ${instrucoes}
 
 ${nomeErro ? `Categoria do erro: ${nomeErro}` : ""}
 
-Desafio: ${input.titulo ?? "Sem título"}
+Desafio:
+${input.titulo ?? "Sem título"}
 
 Objetivos:
 ${input.objetivos?.join("\n") ?? "Sem objetivos"}
@@ -66,10 +90,21 @@ Erro:
 ${input.erro ?? "(sem erro)"}
 `.trim();
 
-  const response = await ollama.chat({
-    model: "llama3",
-    messages: [{ role: "user", content: prompt }],
-  });
+  try {
+    const response = await ollama.chat({
+      model: "llama3",
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
 
-  return response.message.content;
+    return limitarFeedback(response.message.content);
+  } catch (error) {
+    console.error("Erro ao gerar feedback IA:", error);
+
+    return "Revê o teu código e tenta identificar o erro principal.";
+  }
 };

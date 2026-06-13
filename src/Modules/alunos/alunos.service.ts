@@ -8,6 +8,19 @@ import { AlunoAchievement, JogadorTempo, Trofeu, Heroi, Avatar, Achievement } fr
 
 export class AlunosService {
 
+  static async atualizarUltimoAcesso(alunoId: number) {
+  try {
+    await Aluno.update(
+      { ultimo_acesso: new Date() },
+      { where: { id: alunoId } }
+    );
+
+    return { message: "Estado online atualizado" };
+  } catch (error) {
+    throw handleError("Erro ao atualizar estado online", error);
+  }
+}
+
   static async getAllAlunos(): Promise<AlunoType[]> {
     try {
       const getAllAlunos = await Aluno.findAll({

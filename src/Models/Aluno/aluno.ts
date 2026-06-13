@@ -1,3 +1,4 @@
+import Amizade from "../Amizade/amizade.js";
 import {
     Table, Column, Model, DataType,
     HasOne, HasMany, BelongsTo, ForeignKey, BelongsToMany,
@@ -59,6 +60,10 @@ export default class Aluno extends Model {
     @Column({ allowNull: false, defaultValue: DataType.NOW, type: DataType.DATE })
     declare data_registo: Date;
 
+    @Column({ allowNull: true, type: DataType.DATE })
+    declare ultimo_acesso: Date | null;
+
+
     // ─── ASSOCIATIONS ────────────────────────────────────────────────
     @BelongsTo(() => Avatar, "avatar_id")
     declare avatar: Avatar;
@@ -89,6 +94,12 @@ export default class Aluno extends Model {
 
     @HasMany(() => TempoNivel, "aluno_id")
     declare temposNiveis: TempoNivel[];
+
+        @HasMany(() => Amizade, "aluno_id")
+    declare pedidosEnviados: Amizade[];
+
+    @HasMany(() => Amizade, "amigo_id")
+    declare pedidosRecebidos: Amizade[];
 
     @BelongsToMany(() => Trofeu, () => AlunoTrofeu)
     declare trofeus: Trofeu[];
