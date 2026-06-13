@@ -112,7 +112,7 @@ export class AmizadesService {
         {
           model: Aluno,
           as: "aluno",
-          attributes: ["id", "nome", "email", "ultimo_acesso"],
+          attributes: ["id", "nome", "email", "ultimo_acesso", "online"],
           include: [
             { model: Avatar, as: "avatar", attributes: ["id", "nome", "caminho_imagem"] },
             { model: Heroi, as: "heroi", attributes: ["id", "nome", "imagem"] },
@@ -121,7 +121,7 @@ export class AmizadesService {
         {
           model: Aluno,
           as: "amigo",
-          attributes: ["id", "nome", "email", "ultimo_acesso"],
+          attributes: ["id", "nome", "email", "ultimo_acesso", "online"],
           include: [
             { model: Avatar, as: "avatar", attributes: ["id", "nome", "caminho_imagem"] },
             { model: Heroi, as: "heroi", attributes: ["id", "nome", "imagem"] },
@@ -140,7 +140,7 @@ export class AmizadesService {
         email: outro.email,
         avatar: outro.avatar,
         heroi: outro.heroi,
-        online: estaOnline(outro.ultimo_acesso),
+        online: outro.online === true,
         ultimo_acesso: outro.ultimo_acesso,
       };
     });

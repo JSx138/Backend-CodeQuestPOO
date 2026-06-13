@@ -63,6 +63,9 @@ export default class Aluno extends Model {
     @Column({ allowNull: true, type: DataType.DATE })
     declare ultimo_acesso: Date | null;
 
+    @Column({ allowNull: false, defaultValue: false, type: DataType.BOOLEAN })
+    declare online: boolean;
+
 
     // ─── ASSOCIATIONS ────────────────────────────────────────────────
     @BelongsTo(() => Avatar, "avatar_id")
@@ -95,7 +98,7 @@ export default class Aluno extends Model {
     @HasMany(() => TempoNivel, "aluno_id")
     declare temposNiveis: TempoNivel[];
 
-        @HasMany(() => Amizade, "aluno_id")
+    @HasMany(() => Amizade, "aluno_id")
     declare pedidosEnviados: Amizade[];
 
     @HasMany(() => Amizade, "amigo_id")
