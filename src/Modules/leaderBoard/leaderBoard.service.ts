@@ -5,7 +5,7 @@ import {
   Aluno,
   DesempenhoDesafio,
   Avatar,
-  Heroi,
+  Mentores,
   JogadorTempo,
 } from "../../Models/index.js";
 
@@ -43,8 +43,8 @@ export class LeaderBoard {
                 attributes: ["id", "nome", "caminho_imagem"],
               },
               {
-                model: Heroi,
-                as: "heroi",
+                model: Mentores,
+                as: "mentor",
                 attributes: ["id", "nome", "imagem"],
               },
               {
@@ -88,7 +88,7 @@ export class LeaderBoard {
           alunoId,
           nome: row.aluno?.nome,
           avatar: row.aluno?.avatar,
-          heroi: row.aluno?.heroi,
+          mentor: row.aluno?.mentor,
           tempoTotal: row.aluno?.tempo?.tempo_total ?? 0,
           online: estaOnline(row.aluno?.ultimo_acesso ?? null),
           ultimo_acesso: row.aluno?.ultimo_acesso ?? null,
@@ -158,8 +158,8 @@ export class LeaderBoard {
                 attributes: ["id", "nome", "caminho_imagem"],
               },
               {
-                model: Heroi,
-                as: "heroi",
+                model: Mentores,
+                as: "mentor",
                 attributes: ["id", "nome", "imagem"],
               },
               {
@@ -203,7 +203,7 @@ export class LeaderBoard {
         alunoId: entry.aluno_id,
         nome: entry.aluno?.nome,
         avatar: entry.aluno?.avatar,
-        heroi: entry.aluno?.heroi,
+        mentor: entry.aluno?.mentor,
         tempo: entry.tempo_desafio,
         tempoTotal: entry.aluno?.tempo?.tempo_total ?? 0,
         online: estaOnline(entry.aluno?.ultimo_acesso ?? null),

@@ -4,7 +4,7 @@ import {
     HasOne, HasMany, BelongsTo, ForeignKey, BelongsToMany,
 } from "sequelize-typescript";
 import Avatar from "../Avatar/avatar.js";
-import Heroi from "../Heroi/heroi.js";
+import Mentores from "../Mentores/mentores.js";
 import ProgressoAluno from "../ProgressoAluno/progressoAluno.js";
 import DesempenhoDesafio from "../DesempenhoDesafio/desempenhoDesafio.js";
 import ErroJogador from "../ErroJogador/erroJogador.js";
@@ -21,6 +21,13 @@ export default class Aluno extends Model {
 
     @Column({ primaryKey: true, autoIncrement: true, type: DataType.INTEGER })
     declare id: number;
+
+    @Column({
+        type: DataType.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+    })
+    is_admin!: boolean;
 
     @Column({ allowNull: false, unique: true, type: DataType.STRING(100) })
     declare email: string;
@@ -50,9 +57,9 @@ export default class Aluno extends Model {
     @Column({ allowNull: true, type: DataType.INTEGER })
     declare avatar_id: number | null;
 
-    @ForeignKey(() => Heroi)
+    @ForeignKey(() => Mentores)
     @Column({ allowNull: true, type: DataType.INTEGER })
-    declare heroi_id: number | null;
+    declare mentor_id: number | null;
 
     @Column({ allowNull: false, defaultValue: true, type: DataType.BOOLEAN })
     declare ativo: boolean;
@@ -71,8 +78,8 @@ export default class Aluno extends Model {
     @BelongsTo(() => Avatar, "avatar_id")
     declare avatar: Avatar;
 
-    @BelongsTo(() => Heroi, "heroi_id")
-    declare heroi: Heroi;
+    @BelongsTo(() => Mentores, "mentor_id")
+    declare mentor: Mentores;
 
     @HasOne(() => ProgressoAluno, "aluno_id")
     declare progresso: ProgressoAluno;

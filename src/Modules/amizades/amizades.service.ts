@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { Aluno, Amizade, Avatar, Heroi } from "../../Models/index.js";
+import { Aluno, Amizade, Avatar, Mentores } from "../../Models/index.js";
 
 const ONLINE_MINUTOS = 5;
 
@@ -112,10 +112,24 @@ export class AmizadesService {
         {
           model: Aluno,
           as: "aluno",
-          attributes: ["id", "nome", "email", "ultimo_acesso", "online"],
+          attributes: [
+            "id",
+            "nome",
+            "email",
+            "ultimo_acesso",
+            "online"
+          ],
           include: [
-            { model: Avatar, as: "avatar", attributes: ["id", "nome", "caminho_imagem"] },
-            { model: Heroi, as: "heroi", attributes: ["id", "nome", "imagem"] },
+            {
+              model: Avatar,
+              as: "avatar",
+              attributes: ["id", "nome", "caminho_imagem"]
+            },
+            {
+              model: Mentores,
+              as: "mentor",
+              attributes: ["id", "nome", "imagem"]
+            },
           ],
         },
         {
@@ -123,8 +137,16 @@ export class AmizadesService {
           as: "amigo",
           attributes: ["id", "nome", "email", "ultimo_acesso", "online"],
           include: [
-            { model: Avatar, as: "avatar", attributes: ["id", "nome", "caminho_imagem"] },
-            { model: Heroi, as: "heroi", attributes: ["id", "nome", "imagem"] },
+            {
+              model: Avatar,
+              as: "avatar",
+              attributes: ["id", "nome", "caminho_imagem"]
+            },
+            {
+              model: Mentores,
+              as: "mentor",
+              attributes: ["id", "nome", "imagem"]
+            }
           ],
         },
       ],
@@ -139,7 +161,7 @@ export class AmizadesService {
         nome: outro.nome,
         email: outro.email,
         avatar: outro.avatar,
-        heroi: outro.heroi,
+        mentor: outro.mentor,
         online: outro.online === true,
         ultimo_acesso: outro.ultimo_acesso,
       };
@@ -157,7 +179,11 @@ export class AmizadesService {
           model: Aluno,
           as: "aluno",
           attributes: ["id", "nome", "email", "ultimo_acesso"],
-          include: [{ model: Avatar, as: "avatar", attributes: ["id", "nome", "caminho_imagem"] }],
+          include: [{
+            model: Avatar,
+            as: "avatar",
+            attributes: ["id", "nome", "caminho_imagem"]
+          }],
         },
       ],
       order: [["data_pedido", "DESC"]],

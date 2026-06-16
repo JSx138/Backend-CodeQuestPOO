@@ -10,7 +10,7 @@ import TipoErro from "../Models/TipoErro/tipoErro.js"
 import TipoFeedback from "../Models/TipoFeedback/tipoFeedback.js"
 import DesempenhoDesafio from "../Models/DesempenhoDesafio/desempenhoDesafio.js"
 import Mapa from "../Models/Mapa/mapa.js"
-import Heroi from "../Models/Heroi/heroi.js"
+import Mentores from "../Models/Mentores/mentores.js"
 import ErroJogador from "../Models/ErroJogador/erroJogador.js"
 import Achievement from "../Models/Achievement/achievement.js"
 import AlunoAchievement from "../Models/AlunoAchievement/alunoAchievement.js"
@@ -46,7 +46,7 @@ const sequelize = new Sequelize({
         TipoFeedback,
         DesempenhoDesafio,
         Mapa,
-        Heroi,
+        Mentores,
         ErroJogador,
         Achievement,
         AlunoAchievement,

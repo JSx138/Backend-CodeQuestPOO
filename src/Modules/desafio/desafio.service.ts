@@ -7,7 +7,7 @@ import Desafio from '../../Models/Desafio/desafio.js';
 import Nivel from '../../Models/Nivel/nivel.js';
 import DesempenhoDesafio from '../../Models/DesempenhoDesafio/desempenhoDesafio.js';
 import { TempoService } from '../tempo/tempo.service.js';
-import { TipoErro } from '../../Models/index.js';
+import { ErroJogador } from '../../Models/index.js';
 
 export class DesafiosService {
 
@@ -154,12 +154,12 @@ export class DesafiosService {
             );
 
             if (tipo_erro_id !== null) {
-                const [erroJogador] = await TipoErro.findOrCreate({
+                const [erroJogador, created] = await ErroJogador.findOrCreate({
                     where: { aluno_id: alunoId, tipo_erro_id },
                     defaults: { aluno_id: alunoId, tipo_erro_id, quantidade: 1 }
                 });
 
-                if (!erroJogador.isNewRecord) {
+                if (!created) {
                     await erroJogador.increment('quantidade', { by: 1 });
                 }
             }

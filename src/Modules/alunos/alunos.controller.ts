@@ -17,7 +17,7 @@ export const criar = async (req: Request, res: Response): Promise<void> => {
   try {
     const {
       nome, email, password, numero, turma,
-      escola, ano, ano_letivo, avatar_id, heroi_id
+      escola, ano, ano_letivo, avatar_id, mentor_id
     } = req.body;
 
     if (!nome || !email || !password || !numero || !turma || !escola || !ano || !ano_letivo) {
@@ -27,7 +27,7 @@ export const criar = async (req: Request, res: Response): Promise<void> => {
 
     const aluno = await AlunosService.criarAluno({
       nome, email, password, numero, turma,
-      escola, ano, ano_letivo, avatar_id, heroi_id
+      escola, ano, ano_letivo, avatar_id, mentor_id
     });
 
     res.status(201).json(aluno);

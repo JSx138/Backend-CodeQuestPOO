@@ -7,6 +7,7 @@ import { Server } from "socket.io";
 import sequelize from "./Config/sequelize.js";
 import feedbackAIRoutes from "./Modules/feedbackAI/feedbackAI.routes.js";
 import amizadesRoutes from "./Modules/amizades/amizades.route.js";
+import adminRoutes from "./Modules/admin/admin.routes.js";
 
 import authRouter from "./Modules/auth/auth.routes.js";
 import alunosRouter from "./Modules/alunos/alunos.routes.js";
@@ -21,6 +22,8 @@ import tempoRouter from "./Modules/tempo/tempo.routes.js";
 import pdf from "./Modules/pdf/pdf.routes.js";
 import jogadorTempoRouter from "./Modules/jogadorTempo/jogTem.routes.js";
 import leaderBoardRouter from "./Modules/leaderBoard/leaderBoard.routes.js";
+
+import Erros from "./Modules/erros/erros.routes.js";
 
 import Aluno from "./Models/Aluno/aluno.js";
 
@@ -150,7 +153,9 @@ app.use("/api/desafios", desafios);
 app.use("/api/desempenho", desempenhoRouter);
 app.use("/api/jogadorTempo", jogadorTempoRouter);
 app.use("/api/pdf", pdf);
+app.use("/api/erros", Erros)
 app.use("/api/leaderboard", leaderBoardRouter);
+app.use("/api/admin", adminRoutes);
 
 app.get("/api/health", async (_req: Request, res: Response) => {
   try {

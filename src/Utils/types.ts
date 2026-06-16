@@ -13,7 +13,7 @@ export interface Aluno {
   ano: number;
   ano_letivo: string;
   avatar_id: number;
-  heroi_id: number;
+  mentor_id: number;
 }
 
 export interface CriarAlunoDTO {
@@ -26,7 +26,7 @@ export interface CriarAlunoDTO {
   ano: number;
   ano_letivo: string;
   avatar_id: number;
-  heroi_id: number;
+  mentor_id: number;
 }
 
 // ================================

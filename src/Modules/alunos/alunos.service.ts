@@ -4,7 +4,7 @@ import Aluno from '../../Models/Aluno/aluno.js';
 import ProgressoAluno from '../../Models/ProgressoAluno/progressoAluno.js';
 import EmailService from '../../Modules/email/email.service.js';
 import bcrypt from "bcryptjs";
-import { AlunoAchievement, JogadorTempo, Trofeu, Heroi, Avatar, Achievement } from '../../Models/index.js';
+import { AlunoAchievement, JogadorTempo, Trofeu, Mentores, Avatar, Achievement } from '../../Models/index.js';
 
 export class AlunosService {
 
@@ -34,7 +34,7 @@ export class AlunosService {
           'ano',
           'ano_letivo',
           'avatar_id',
-          'heroi_id',
+          'mentor_id',
           'ativo',
           'data_registo'
         ],
@@ -60,7 +60,7 @@ export class AlunosService {
         ano: dados.ano,
         ano_letivo: dados.ano_letivo,
         avatar_id: dados.avatar_id,
-        heroi_id: dados.heroi_id
+        mentor_id: dados.mentor_id,
       });
 
       await ProgressoAluno.create({
@@ -169,8 +169,8 @@ export class AlunosService {
             attributes: ["nome", "caminho_imagem"]
           },
           {
-            model: Heroi,
-            as: "heroi",
+            model: Mentores,
+            as: "mentor",
             attributes: ["nome", "imagem"]
           }
         ]
