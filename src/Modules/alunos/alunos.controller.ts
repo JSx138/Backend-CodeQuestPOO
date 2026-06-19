@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { AlunosService } from './alunos.service.js';
-import { handleError } from '../../Utils/error.js';
 
 export const getAll = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -40,20 +39,52 @@ export const criar = async (req: Request, res: Response): Promise<void> => {
 
 export const getMe = async (req: Request, res: Response): Promise<void> => {
   try {
-    const alunoId = Number(req.alunoId!)
+    const alunoId = Number((req as any).alunoId);
 
     if (isNaN(alunoId)) {
       res.status(400).json({ message: 'alunoId é obrigatório' });
+      return;
     }
 
     const aluno = await AlunosService.getMe(alunoId);
     res.json(aluno);
   } catch (err) {
     const error = err as Error;
-    console.error('[AlunosController] obter aluno atual:', err);
+    console.error('[AlunosController] obter aluno atual:', error);
     res.status(500).json({ error: error.message });
   }
-}
+};
+
+export const atualizarPerfil = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const alunoId = Number((req as any).alunoId);
+
+    if (isNaN(alunoId)) {
+      res.status(400).json({ message: 'alunoId é obrigatório' });
+      return;
+    }
+
+    const { nome, turma, escola, mentor_id } = req.body;
+
+    if (!nome || !String(nome).trim()) {
+      res.status(400).json({ message: 'O nome é obrigatório' });
+      return;
+    }
+
+    const aluno = await AlunosService.atualizarPerfil(alunoId, {
+      nome: String(nome).trim(),
+      turma,
+      escola,
+      mentor_id: mentor_id ? Number(mentor_id) : null
+    });
+
+    res.json(aluno);
+  } catch (err) {
+    const error = err as Error;
+    console.error('[AlunosController] atualizarPerfil:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 export const getAlunoById = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -61,21 +92,19 @@ export const getAlunoById = async (req: Request, res: Response): Promise<void> =
 
     if (isNaN(alunoId)) {
       res.status(400).json({ message: 'alunoId é obrigatório' });
+      return;
     }
 
-    const aluno = AlunosService.getById(alunoId);
+    const aluno = await AlunosService.getById(alunoId);
     res.json(aluno);
-
   } catch (error) {
     res.status(500).json({ error: "Erro ao buscar aluno por Id" });
   }
-
-  
-}
+};
 
 export const atualizarOnline = async (req: Request, res: Response): Promise<void> => {
   try {
-    const alunoId = Number(req.alunoId);
+    const alunoId = Number((req as any).alunoId);
 
     if (isNaN(alunoId)) {
       res.status(400).json({ message: "alunoId é obrigatório" });

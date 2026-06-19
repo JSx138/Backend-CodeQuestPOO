@@ -9,17 +9,17 @@ import { AlunoAchievement, JogadorTempo, Trofeu, Mentores, Avatar, Achievement }
 export class AlunosService {
 
   static async atualizarUltimoAcesso(alunoId: number) {
-  try {
-    await Aluno.update(
-      { ultimo_acesso: new Date() },
-      { where: { id: alunoId } }
-    );
+    try {
+      await Aluno.update(
+        { ultimo_acesso: new Date() },
+        { where: { id: alunoId } }
+      );
 
-    return { message: "Estado online atualizado" };
-  } catch (error) {
-    throw handleError("Erro ao atualizar estado online", error);
+      return { message: "Estado online atualizado" };
+    } catch (error) {
+      throw handleError("Erro ao atualizar estado online", error);
+    }
   }
-}
 
   static async getAllAlunos(): Promise<AlunoType[]> {
     try {
@@ -50,6 +50,7 @@ export class AlunosService {
   static async criarAluno(dados: CriarAlunoDTO): Promise<AlunoType> {
     try {
       const hash = await bcrypt.hash(dados.password, 10);
+
       const novoAluno = await Aluno.create({
         nome: dados.nome,
         email: dados.email,
@@ -83,7 +84,6 @@ export class AlunosService {
 
   static async getMe(alunoId: number): Promise<AlunoType> {
     try {
-
       const aluno = await Aluno.findOne({
         where: { id: alunoId },
         attributes: [
@@ -95,6 +95,9 @@ export class AlunosService {
           "escola",
           "ano",
           "ano_letivo",
+          "avatar_id",
+          "mentor_id",
+          "ativo",
           "data_registo"
         ],
         include: [
@@ -107,6 +110,11 @@ export class AlunosService {
             model: Avatar,
             as: "avatar",
             attributes: ["nome", "caminho_imagem"]
+          },
+          {
+            model: Mentores,
+            as: "mentor",
+            attributes: ["id", "nome", "imagem"]
           }
         ]
       });
@@ -116,13 +124,76 @@ export class AlunosService {
       }
 
       return aluno.get({ plain: true }) as AlunoType;
-
     } catch (error) {
+      throw handleError("Erro ao buscar aluno", error);
+    }
+  }
 
-      throw handleError(
-        "Erro ao buscar aluno",
-        error
-      );
+  static async atualizarPerfil(
+    alunoId: number,
+    dados: {
+      nome: string;
+      turma?: string;
+      escola?: string;
+      mentor_id?: number | null;
+    }
+  ) {
+    try {
+      const aluno = await Aluno.findByPk(alunoId);
+
+      if (!aluno) {
+        throw new Error("Aluno não encontrado");
+      }
+
+      await aluno.update({
+        nome: dados.nome,
+        turma: dados.turma || null,
+        escola: dados.escola || null,
+        mentor_id: dados.mentor_id || null
+      });
+
+      const alunoAtualizado = await Aluno.findOne({
+        where: { id: alunoId },
+        attributes: [
+          "id",
+          "nome",
+          "email",
+          "numero",
+          "turma",
+          "escola",
+          "ano",
+          "ano_letivo",
+          "avatar_id",
+          "mentor_id",
+          "ativo",
+          "data_registo"
+        ],
+        include: [
+          {
+            model: ProgressoAluno,
+            as: "progresso",
+            attributes: ["mapa_atual", "nivel_atual", "xp", "tempo_total_jogo"]
+          },
+          {
+            model: Avatar,
+            as: "avatar",
+            attributes: ["nome", "caminho_imagem"]
+          },
+          {
+            model: Mentores,
+            as: "mentor",
+            attributes: ["id", "nome", "imagem"]
+          }
+        ]
+      });
+
+      if (!alunoAtualizado) {
+        throw new Error("Aluno não encontrado");
+      }
+
+      return alunoAtualizado.get({ plain: true });
+    } catch (error) {
+      throw handleError("Erro ao atualizar perfil", error);
     }
   }
 
@@ -138,7 +209,9 @@ export class AlunosService {
           "turma",
           "escola",
           "ano",
-          "ano_letivo"
+          "ano_letivo",
+          "avatar_id",
+          "mentor_id"
         ],
         include: [
           {
@@ -171,13 +244,14 @@ export class AlunosService {
           {
             model: Mentores,
             as: "mentor",
-            attributes: ["nome", "imagem"]
+            attributes: ["id", "nome", "imagem"]
           }
         ]
-      })
-      return getAluno
+      });
+
+      return getAluno;
     } catch (error) {
-      throw handleError('Erro ao buscar aluno', error)
+      throw handleError('Erro ao buscar aluno', error);
     }
   }
 }

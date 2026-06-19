@@ -1,7 +1,14 @@
 import { Router } from 'express';
-import { getAll, criar, getMe, getAlunoById, atualizarOnline} from './alunos.controller.js';
-import verificarToken from '../../Middlewares/auth.middleware.js';
+import {
+    getAll,
+    criar,
+    getMe,
+    getAlunoById,
+    atualizarOnline,
+    atualizarPerfil
+} from './alunos.controller.js';
 
+import verificarToken from '../../Middlewares/auth.middleware.js';
 
 const router = Router();
 
@@ -12,24 +19,29 @@ router.patch(
 );
 
 router.get(
-    '/', 
+    '/',
     getAll
 );
 
 router.get(
-    '/getMe', 
-    verificarToken, 
+    '/getMe',
+    verificarToken,
     getMe
-)
+);
+
+router.put(
+    '/getMe',
+    verificarToken,
+    atualizarPerfil
+);
 
 router.get(
-    '/:id', 
+    '/:id',
     getAlunoById
-)
+);
 
-// POST /api/alunos
 router.post(
-    '/registrar', 
+    '/registrar',
     criar
 );
 
