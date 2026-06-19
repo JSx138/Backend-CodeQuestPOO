@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import http from "http";
 import { Server } from "socket.io";
+import path from "path";
 
 import sequelize from "./Config/sequelize.js";
 import feedbackAIRoutes from "./Modules/feedbackAI/feedbackAI.routes.js";
@@ -22,9 +23,11 @@ import tempoRouter from "./Modules/tempo/tempo.routes.js";
 import pdf from "./Modules/pdf/pdf.routes.js";
 import jogadorTempoRouter from "./Modules/jogadorTempo/jogTem.routes.js";
 import leaderBoardRouter from "./Modules/leaderBoard/leaderBoard.routes.js";
+import mentoresRouter from "./Modules/mentores/mentores.routes.js";
+
+import excelRouter from "./Modules/excel/excel.routes.js";
 
 import Erros from "./Modules/erros/erros.routes.js";
-
 import Aluno from "./Models/Aluno/aluno.js";
 
 dotenv.config();
@@ -36,7 +39,12 @@ const server = http.createServer(app);
 export const io = new Server(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST", "PATCH", "DELETE"],
+    methods: [
+      "GET",
+      "POST",
+      "PATCH",
+      "DELETE"
+    ],
   },
 });
 
@@ -136,6 +144,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.text({ type: "text/plain" }));
 
+const uploadsPath = path.join(process.cwd(), 'uploads');
+app.use('/uploads', express.static(uploadsPath));
+
 app.use("/api/amizades", amizadesRoutes);
 app.use("/api/feedback-ai", feedbackAIRoutes);
 
@@ -146,16 +157,22 @@ app.get("/api/feedback-ai/teste", (_req: Request, res: Response) => {
 app.use("/api/alunos", alunosRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/progresso", progressoRoutes);
+
 app.use("/api/mapas", mapas);
 app.use("/api/tempo", tempoRouter);
 app.use("/api/niveis", levelRouter);
+
 app.use("/api/desafios", desafios);
 app.use("/api/desempenho", desempenhoRouter);
 app.use("/api/jogadorTempo", jogadorTempoRouter);
+
 app.use("/api/pdf", pdf);
 app.use("/api/erros", Erros)
 app.use("/api/leaderboard", leaderBoardRouter);
+
 app.use("/api/admin", adminRoutes);
+app.use("/api/mentores", mentoresRouter);
+app.use("/api/excel", excelRouter);
 
 app.get("/api/health", async (_req: Request, res: Response) => {
   try {

@@ -118,10 +118,10 @@ export class MentoresService {
             const mentor = await Mentores.findByPk(mentorId);
             const aluno = await Aluno.findByPk(alunoId);
 
-            if(!mentor || !aluno){
+            if (!mentor || !aluno) {
                 throw new Error("Mentor ou aluno não encontrado");
             }
-            
+
             const heroiEscolhido = await Aluno.update({
                 mentor_id: mentorId
             }, {
@@ -131,10 +131,38 @@ export class MentoresService {
             });
 
             return heroiEscolhido;
-            
+
         } catch (error) {
             throw handleError("Erro ao escolher mentor", error);
         }
     }
 
+    static async trocarMentor(novoMentorId: number, alunoId: number) {
+        try {
+            const mentor = await Mentores.findByPk(novoMentorId);
+
+            if (!mentor) {
+                throw new Error("Mentor não encontrado");
+            }
+
+            const aluno = await Aluno.findByPk(alunoId);
+
+            if (!aluno) {
+                throw new Error("Aluno não encontrado");
+            }
+
+            if (aluno.mentor_id === novoMentorId) {
+                throw new Error("O mentor atual já é o escolhido");
+            }
+
+            await aluno.update({
+                mentor_id: novoMentorId
+            });
+
+            return aluno;
+
+        } catch (error) {
+            throw handleError("Erro ao trocar mentor", error);
+        }
+    }
 }

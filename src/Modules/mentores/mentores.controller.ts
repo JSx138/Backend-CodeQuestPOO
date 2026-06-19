@@ -34,7 +34,7 @@ export const getMentorById = async (req: Request, res: Response) => {
 
 export const getMentorAluno = async (req: Request, res: Response) => {
     try {
-        const { alunoId } = req.params;
+        const alunoId = Number(req.alunoId!);
 
         if (!alunoId) {
             throw new Error("ID do aluno inválido");
@@ -66,6 +66,56 @@ export const getMentorReaction = async (req: Request, res: Response) => {
         console.error("ERRO ", error);
         return res.status(500).json({
             message: "Erro ao buscar reações do mentor"
+        });
+    }
+};
+
+export const escolherHeroi = async (req: Request, res: Response) => {
+    try {
+        const { mentorId } = req.params;
+        const alunoId = Number(req.alunoId!);
+
+        if (!mentorId || !alunoId) {
+            throw new Error("ID do mentor ou aluno inválido");
+        }
+
+        const heroiEscolhido = await MentoresService.escolherHeroi(Number(mentorId), alunoId);
+        res.json(heroiEscolhido);
+
+    } catch (error) {
+        console.error("ERRO ", error);
+        return res.status(500).json({
+            message: "Erro ao escolher mentor"
+        });
+    }
+}
+
+export const trocarMentor = async (req: Request, res: Response) => {
+    try {
+        const novoMentorId = Number(req.params.novoMentorId);
+        const alunoId = Number(req.alunoId!);
+
+        if (
+            !Number.isInteger(novoMentorId) ||
+            !Number.isInteger(alunoId)
+        ) {
+            return res.status(400).json({
+                message: "IDs inválidos"
+            });
+        }
+
+        const mentorTrocado = await MentoresService.trocarMentor(
+            novoMentorId,
+            alunoId
+        );
+
+        return res.status(200).json(mentorTrocado);
+
+    } catch (error: any) {
+        console.error(error);
+
+        return res.status(500).json({
+            message: error.message || "Erro ao trocar mentor"
         });
     }
 };

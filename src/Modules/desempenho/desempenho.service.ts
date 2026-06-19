@@ -78,10 +78,11 @@ export class DesempenhoService {
       const totalErradas = desempenhos.reduce((s, d) => s + (d.respostas_erradas ?? 0), 0);
       const totalTentativas = desempenhos.reduce((s, d) => s + (d.tentativas ?? 0), 0);
       const totalDesafios = desempenhos.length;
-      const taxaAcerto = totalTentativas > 0
-        ? Math.round((totalCertas / (totalCertas + totalErradas)) * 100)
-        : 0;
+      const totalRespostas = totalCertas + totalErradas;
 
+      const taxaAcerto = totalRespostas > 0
+        ? Math.round((totalCertas / totalRespostas) * 100)
+        : 0;
       const contagemErros: Record<string, {
         id: number,
         nome: string,
