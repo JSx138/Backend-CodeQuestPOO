@@ -199,27 +199,39 @@ export class DesafiosService {
             }
 
             if (progresso && nivelCompleto) {
-                const nivelAtualAluno = desafio.nivel.nivel;
                 const mapaAtualAluno = desafio.nivel.mapa_id;
+                const numeroNivelAtual = desafio.nivel.nivel;
 
-                const proximoNivel = await Nivel.findOne({
+                const proximoNivelMesmoMapa = await Nivel.findOne({
                     where: {
                         mapa_id: mapaAtualAluno,
-                        nivel: nivelAtualAluno + 1
+                        nivel: numeroNivelAtual + 1
                     }
                 });
 
-                if (proximoNivel) {
+                if (proximoNivelMesmoMapa) {
                     await progresso.update({
-                        nivel_atual: nivelAtualAluno + 1
+                        mapa_atual: mapaAtualAluno,
+                        nivel_atual: proximoNivelMesmoMapa.id
                     });
+
                     await progresso.reload();
-                }
-                else {
-                    await progresso.update({
-                        mapa_atual: mapaAtualAluno + 1,
-                        nivel_atual: 1
+                } else {
+                    const primeiroNivelProximoMapa = await Nivel.findOne({
+                        where: {
+                            mapa_id: mapaAtualAluno + 1,
+                            nivel: 1
+                        }
                     });
+
+                    if (primeiroNivelProximoMapa) {
+                        await progresso.update({
+                            mapa_atual: primeiroNivelProximoMapa.mapa_id,
+                            nivel_atual: primeiroNivelProximoMapa.id
+                        });
+
+                        await progresso.reload();
+                    }
                 }
             }
 
